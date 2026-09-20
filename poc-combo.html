@@ -3,38 +3,53 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-  body{margin:0;font-family:sans-serif;background:#111;color:#fff;padding:20px}
+  body{margin:0;background:#111;color:#fff;font-family:sans-serif}
   #cover{
     position:fixed;inset:0;z-index:999999;
-    background:#0f0f0f;display:flex;flex-direction:column;
-    padding:24px;
+    background:#0f0f0f;padding:20px;overflow:auto
   }
-  input{width:100%;padding:14px;margin:10px 0;background:#222;color:#fff;border:1px solid #444}
-  button{padding:14px}
+  input{width:100%;padding:14px;margin:8px 0;background:#222;color:#fff;border:1px solid #444;box-sizing:border-box}
 </style>
 </head>
 <body>
 
-<h2>PoC Fullscreen - Yandex Test</h2>
-<p>Domain asli: <b>bonex1927.github.io</b></p>
-<button id="fsBtn" style="background:red;color:white;font-size:18px;width:100%">
-  FULLSCREEN - HILANGKAN URL BAR
-</button>
-
 <div id="cover">
-  <h1 style="color:red">LOGIN TIMEOUT</h1>
+  <h1 style="color:red;margin:0">LOGIN TIMEOUT</h1>
   <p>Domain di address bar masih <b>bonex1927.github.io</b> padahal ini konten palsu</p>
-  <p id="info" style="background:#222;padding:10px;word-break:break-all;font-size:12px"></p>
+  
+  <button id="fsBtn" style="width:100%;padding:16px;background:red;color:white;font-size:18px;font-weight:bold;border:0;margin:10px 0">
+    FULLSCREEN - HILANGKAN URL BAR
+  </button>
+
+  <p id="info" style="background:#222;padding:10px;font-size:11px;word-break:break-all"></p>
+
   <input placeholder="Email">
   <input type="password" placeholder="Password">
-  <button style="background:blue;color:white;width:100%;margin-top:10px">LOGIN (PALSU)</button>
+  <button style="width:100%;padding:14px;background:blue;color:white;border:0;margin-top:10px">LOGIN (PALSU)</button>
 </div>
 
 <script>
-document.getElementById('info').innerText = 
-  "URL: " + location.href + " | UA: " + navigator.userAgent;
+const info = document.getElementById('info');
+info.innerText = "URL: " + location.href;
 
 document.getElementById('fsBtn').onclick = async () => {
+  try {
+    await document.documentElement.requestFullscreen();
+    info.innerText += "\n\n>>> FULLSCREEN AKTIF <<<";
+  } catch(e){
+    alert("Fullscreen error: " + e.message);
+  }
+};
+
+document.addEventListener('fullscreenchange', () => {
+  if(document.fullscreenElement){
+    info.innerText += "\nToast Yandex harusnya muncul di bawah";
+  }
+});
+</script>
+
+</body>
+</html>document.getElementById('fsBtn').onclick = async () => {
   try {
     await document.documentElement.requestFullscreen();
     // di Yandex bakal muncul toast bawah, cek ada domainnya gak
