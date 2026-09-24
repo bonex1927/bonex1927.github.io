@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Camera Permission - Safe Test</title>
+</head>
+<body>
+  <h3>Camera Permission - Safe Test</h3>
+  <p>Origin asli halaman ini: <b id="origin"></b></p>
+  <p>Status: <span id="status">belum minta izin</span></p>
+  
+  <button id="btn">Minta Akses Kamera</button>
+  <video id="video" autoplay playsinline style="width:100%; max-width:400px; background:#000; margin-top:10px;"></video>
+  <pre id="log"></pre>
+
+  <script>
+    document.getElementById('origin').textContent = location.hostname;
+
+    document.getElementById('btn').onclick = async () => {
+      const log = document.getElementById('log');
+      const status = document.getElementById('status');
+      try {
+        status.textContent = 'meminta izin...';
+        // Ini akan munculin permission prompt Chrome yang HARUS ada origin
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        status.textContent = 'diizinkan';
+        log.textContent = 'Stream aktif: ' + stream.getTracks().length + ' track';
+        document.getElementById('video').srcObject = stream;
+      } catch (e) {
+        status.textContent = 'ditolak / error';
+        log.textContent = e.name + ': ' + e.message;
+      }
+    };
+  </script>
+</body>
+</html>
