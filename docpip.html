@@ -1,46 +1,15 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Document PiP Clickable - Desktop S3</title>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<style>
-body{font-family:Roboto,sans-serif;padding:24px}
-.card{border:1px solid #dadce0;border-radius:8px;padding:16px;margin:16px 0}
-button{padding:12px 20px;font-size:16px;border-radius:6px;border:1px solid #ccc;cursor:pointer}
-#open{background:#e8f0fe} #go{background:#fce8e6}
-.small{font-size:13px;color:#5f6368}
-</style>
-</head>
+<!doctype html>
+<html><meta charset=utf-8>
 <body>
-<h3>Document PiP - Clickable Origin Confusion (Desktop)</h3>
-<div class="card">
-<b>Bug:</b> Document PiP from attacker persists over google.com new tab, no origin, remains clickable<br>
-<b>Component:</b> Blink>Media>PictureInPicture - Document PiP<br>
-<b>OS:</b> Windows / Linux / Mac (Desktop)
-</div>
-
-<button id="open">1. Open PiP from attacker.com</button>
-<button id="go">2. Open google.com in new tab</button>
-<p id="status" class="small">Status: ready</p>
-
+<h3>Document PiP - Origin Confusion - Desktop</h3>
+<button id=a>1. Open PiP (attacker.com)</button>
+<button id=b>2. Open google.com in new tab</button>
 <script>
-let pipWin=null;
-document.getElementById('open').onclick=async()=>{
-  pipWin=await documentPictureInPicture.requestWindow({width:350,height:220});
-  pipWin.document.body.innerHTML=`
-    <style>body{font-family:sans-serif;text-align:center;padding:16px} button{padding:10px}</style>
-    <h3>This PiP is from attacker.com</h3>
-    <p>Main bar will be google.com</p>
-    <button id="btn" onclick="this.textContent='Clicked! From attacker.com but bar=google.com';this.style.background='red';this.style.color='white'">Click Me</button>
-    <p style="font-size:10px;color:#666;margin-top:14px">Origin: bonex1927.github.io<br>Over: google.com<br>No origin indicator</p>
-  `;
-  document.getElementById('status').textContent='PiP created - now click button 2';
+let w;
+a.onclick=async()=>{
+ w=await documentPictureInPicture.requestWindow({width:400,height:250});
+ w.document.body.innerHTML=`<style>body{font:16px sans-serif;padding:16px}button{padding:10px}</style><div>Content from bonex1927.github.io</div><button id=x>Click me</button><script>document.getElementById('x').onclick=()=>{let b=document.getElementById('x');b.textContent='Clicked! From attacker.com but bar=google.com';b.style.background='red';b.style.color='white'}<\/script>`;
 };
-document.getElementById('go').onclick=()=>{
-  window.open('https://www.google.com','_blank');
-  document.getElementById('status').textContent='google.com opened - SWITCH to that tab, PiP still overlays and clickable';
-};
+b.onclick=()=>window.open('https://www.google.com','_blank');
 </script>
-</body>
-</html>
+</body></html>
