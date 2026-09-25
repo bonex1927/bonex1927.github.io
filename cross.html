@@ -1,21 +1,46 @@
 <!DOCTYPE html>
 <html>
-<button id="btn">Open Document PiP</button>
+<body>
+<button id="btn" style="padding:20px;font-size:18px;">OPEN DOC PIP TEST</button>
+<div id="log"></div>
+
 <script>
-btn.onclick = async () => {
-  // Step 1: Buka Doc PiP Window
-  const pipWin = await documentPictureInPicture.requestWindow({width: 400, height: 300});
-  
-  // Step 2: Isi konten - untuk test lu
-  pipWin.document.body.innerHTML = `
-    <h1>Test Content from attacker.com</h1>
-    <p>URL: ${location.href}</p>
-    <p>Origin should be visible in PiP header?</p>
-  `;
-  
-  // Step 3: Test case lu - buka google.com di tab utama setelah PiP kebuka
-  // Cek manual: Apakah PiP header masih nampilin origin attacker.com atau hilang?
-  // setTimeout(()=> window.open('https://google.com','_blank'), 2000);
-}
+const log = (m) => document.getElementById('log').innerHTML += m + "<br>";
+
+log("Support: " + ("documentPictureInPicture" in window));
+
+document.getElementById('btn').addEventListener('click', async () => {
+  try {
+    log("Clicked - requesting...");
+    // WAJIB pakai await di dalam click handler
+    const pipWin = await documentPictureInPicture.requestWindow({
+      width: 400,
+      height: 300
+    });
+
+    log("PiP Window opened!");
+
+    // Copy style biar kebaca
+    [...document.styleSheets].forEach((styleSheet) => {
+      try {
+        const cssRules = [...styleSheet.cssRules].map((rule) => rule.cssText).join('');
+        const style = pipWin.document.createElement('style');
+        style.textContent = cssRules;
+        pipWin.document.head.appendChild(style);
+      } catch (e) {}
+    });
+
+    pipWin.document.body.innerHTML = `
+      <h1>Doc PiP from: ${location.hostname}</h1>
+      <p>Kalau lu buka google.com di tab utama, cek apakah hostname di atas ini masih kelihatan?</p>
+      <p>Time: ${new Date().toLocaleTimeString()}</p>
+    `;
+
+  } catch (err) {
+    log("ERROR: " + err.message);
+    log("Coba di Chrome Desktop 111+ dulu bro, di Brave Android emang kadang butuh flag: chrome://flags/#document-picture-in-picture");
+  }
+});
 </script>
+</body>
 </html>
