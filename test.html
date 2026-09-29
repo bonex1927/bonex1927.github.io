@@ -24,46 +24,90 @@
 </style>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PoC 2E - Cross-Origin via YouTube Embed</title>
+<title>PoC #3 - Custom Tab (mode normal)</title>
 <style>
-  body{font-family:sans-serif;padding:20px;}
+  body{font-family:sans-serif;padding:20px;margin:0;}
   .note{background:#e7f3ff;border:1px solid #2196F3;padding:10px;margin:12px 0;}
-  .ok{background:#e8f5e9;border:1px solid #4caf50;padding:10px;margin:12px 0;}
-  button{font-size:16px;padding:12px 20px;margin:6px 0;}
-  code{background:#eee;padding:2px 6px;}
+  .warn{background:#fff3cd;border:1px solid #ffc107;padding:10px;margin:12px 0;}
+  .real{background:#e8f5e9;border:1px solid #4caf50;padding:10px;margin:12px 0;}
+  button{font-size:16px;padding:12px;margin:6px 0;width:100%;box-sizing:border-box;}
+  code{background:#eee;padding:2px 6px;word-break:break-all;}
   ol li{margin-bottom:8px;}
+  #spoofUI{display:none;background:#fff;color:#202124;text-align:center;padding-top:50px;min-height:75vh;}
+  #spoofUI .logo{font-size:44px;}
+  #spoofUI .logo span:nth-child(1){color:#4285F4}#spoofUI .logo span:nth-child(2){color:#EA4335}
+  #spoofUI .logo span:nth-child(3){color:#FBBC05}#spoofUI .logo span:nth-child(4){color:#4285F4}
+  #spoofUI .logo span:nth-child(5){color:#34A853}#spoofUI .logo span:nth-child(6){color:#EA4335}
+  #spoofUI input{width:80%;font-size:16px;padding:12px;border-radius:8px;border:1px solid #dfe1e5;margin-top:12px;display:block;margin-left:auto;margin-right:auto;}
+  #spoofUI .btn{background:#1a73e8;color:#fff;border:none;border-radius:8px;width:80%;margin-top:16px;}
+  #spoofUI p{color:#5f6368;font-size:13px;margin-top:24px;}
 </style>
 </head>
 <body>
-<h2>Varian E: iframe cross-origin beneran (YouTube)</h2>
+<div id="normalUI">
+<h2>PoC #3 &mdash; Custom Tab Confusion</h2>
+<div class="warn"><b>Halaman ini HANYA untuk pengujian keamanan.</b> Jangan dipakai untuk menipu orang.</div>
 
-<div class="note"><b>Kenapa YouTube?</b> YouTube embed memang boleh di-iframe
-(tidak diblokir kayak Blogger/GitHub Pages), dan <code>youtube.com</code> vs
-<code>github.io</code> = <b>beda origin beneran</b>. Tanpa hosting kedua.</div>
-
-<button onclick="load()">Load YouTube iframe</button>
-<div id="framebox"></div>
-
-<div class="ok" id="hasil" style="display:none"><b>Catat hasil:</b>
+<div class="note"><b>Cara buka sebagai Custom Tab:</b>
 <ol>
-<li>Klik ikon <b>fullscreen</b> di pojok kanan bawah video YouTube.</li>
-<li>Toast fullscreen muncul? Bunyinya <b>persis</b> apa? Tulis verbatim.</li>
-<li>Origin yang tertulis = <code>youtube.com</code> (si iframe, <b>benar</b>),
-atau origin induk / tidak ada toast sama sekali (<b>salah</b>)?</li>
-<li>Ulangi di <b>Chrome Android</b> dan <b>Edge Android</b>, bandingkan.</li>
+<li>Jadikan <b>Edge</b> browser default: Pengaturan HP &rarr; Aplikasi &rarr; Aplikasi default &rarr; Browser &rarr; pilih Edge.</li>
+<li>Kirim URL halaman ini ke diri sendiri via <b>WhatsApp/Telegram</b>, lalu klik link-nya dari aplikasi itu &mdash; biasanya kebuka sebagai Custom Tab.</li>
+<li>Catat hasilnya, lalu ulangi dengan <b>Chrome</b> sebagai browser default dan bandingkan.</li>
 </ol></div>
 
+<div class="real"><b>Data asli (tidak bisa dipalsukan halaman ini):</b><br>
+Origin: <code id="rOrigin"></code><br>
+URL: <code id="rUrl"></code><br>
+Judul tab: <code id="rTitle"></code></div>
+
+<button onclick="spoof()">Aktifkan mode spoof (judul + tampilan palsu)</button>
+<button onclick="push()">Ubah path URL (pushState ke /signin)</button>
+
+<div class="note"><b>Yang dicatat saat pengujian:</b>
+<ol>
+<li>Di toolbar Custom Tab: apakah <b>domain asli</b> terlihat jelas, atau <b>judul halaman</b> yang mendominasi?</li>
+<li>Klik tombol spoof &mdash; apakah toolbar ikut berubah menampilkan judul palsu? Apakah tampilannya meyakinkan sebagai google.com?</li>
+<li>Apakah ada <b>ikon gembok</b>? Bisa diklik untuk melihat info situs?</li>
+<li>Scroll halaman ke bawah &mdash; apakah toolbar ikut menghilang?</li>
+<li>Ulangi semua di <b>Chrome</b>: mana yang lebih gampang menipu, Edge atau Chrome?</li>
+</ol></div>
+</div>
+
+<div id="spoofUI">
+<div class="logo"><span>G</span><span>o</span><span>o</span><span>g</span><span>l</span><span>e</span></div>
+<h3>Login</h3>
+<p>Gunakan Akun Google Anda</p>
+<input id="fakeEmail" placeholder="Email atau ponsel">
+<input id="fakePass" type="password" placeholder="Sandi">
+<button class="btn" onclick="alert('Ini DEMO. Jangan isi data asli!')">Berikutnya</button>
+<p>HALAMAN PALSU untuk pengujian.<br>Lihat toolbar Custom Tab: apakah ada yang menunjukkan ini BUKAN google.com?</p>
+<button onclick="restore()" style="width:80%;margin-top:20px;">Kembalikan ke mode normal</button>
+</div>
+
 <script>
-function load(){
-  document.getElementById('framebox').innerHTML =
-    '<p>Origin halaman induk: <code>'+location.origin+'</code></p>'+
-    '<p>Origin iframe: <code>https://www.youtube.com</code> (beda origin &check;)</p>'+
-    '<iframe width="100%" height="320" '+
-    'src="https://www.youtube.com/embed/aqz-KE-bpKQ" '+
-    'allow="fullscreen" allowfullscreen '+
-    'style="border:2px solid #333;"></iframe>';
-  document.getElementById('hasil').style.display='block';
+function refresh(){
+  document.getElementById('rOrigin').textContent = location.origin;
+  document.getElementById('rUrl').textContent = location.href;
+  document.getElementById('rTitle').textContent = document.title;
 }
+function spoof(){
+  document.title = "accounts.google.com - Login";
+  document.getElementById('normalUI').style.display = 'none';
+  document.getElementById('spoofUI').style.display = 'block';
+  window.scrollTo(0,0);
+}
+function restore(){
+  document.title = "PoC #3 - Custom Tab (mode normal)";
+  document.getElementById('spoofUI').style.display = 'none';
+  document.getElementById('normalUI').style.display = 'block';
+  refresh();
+}
+function push(){
+  history.pushState({}, '', '/signin');
+  refresh();
+  alert('Path URL diubah jadi /signin. Cek toolbar Custom Tab: apakah URL yang tampil ikut berubah?');
+}
+refresh();
 </script>
 <script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
 </html>
