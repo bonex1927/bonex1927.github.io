@@ -1,48 +1,33 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PoC blob: origin confusion</title>
+<title>Google</title>
+<style>
+  body{font-family:Arial,sans-serif;text-align:center;padding-top:70px;margin:0;}
+  .logo{font-size:52px;letter-spacing:-3px;}
+  .logo b:nth-child(1){color:#4285F4}.logo b:nth-child(2){color:#EA4335}
+  .logo b:nth-child(3){color:#FBBC05}.logo b:nth-child(4){color:#4285F4}
+  .logo b:nth-child(5){color:#34A853}.logo b:nth-child(6){color:#EA4335}
+  .box{margin:30px auto;max-width:420px;padding:20px;}
+  input{width:85%;padding:12px;font-size:16px;border:1px solid #ccc;border-radius:24px;}
+  .t{color:#888;font-size:12px;margin-top:24px;}
+</style>
 </head>
-<body style="font-family:sans-serif; padding:16px">
-<h3>PoC 1: blob: URL Origin Confusion</h3>
-<p>Test ini untuk Mi Browser. Klik tombol di bawah:</p>
-
-<button id="btn" style="padding:14px; width:100%; font-size:16px">1. Buka blob URL</button>
-
-<pre id="log" style="background:#111; color:#0f0; padding:10px; margin-top:12px; white-space:pre-wrap">Log: siap
-- Alamat awal: akan keliatan bonex1927.github.io
-- Setelah klik: alamat jadi blob:https://bonex1927.github.io/...
-- Isi halaman jadi dari blob, bukan dari server asli
-</pre>
-
+<body>
+<div class="logo"><b>G</b><b>o</b><b>o</b><b>g</b><b>l</b><b>e</b></div>
+<div class="box">
+  <p>Untuk hasil pencarian yang lebih relevan,<br>izinkan akses lokasi Anda.</p>
+  <input type="text" placeholder="Telusuri Google...">
+  <p class="t">HANYA untuk pengujian keamanan.</p>
+</div>
 <script>
-const log = (m) => {
-  document.getElementById('log').textContent += "\n" + m;
-}
-
-document.getElementById('btn').onclick = () => {
-  // Konten yang sepenuhnya dikontrol attacker, tapi origin-nya masih kebawa domain asli
-  const attackerContent = `
-    <html><body style="font-family:sans-serif;padding:20px">
-    <h2>Ini adalah konten dari BLOB</h2>
-    <p>Alamat di address bar masih ada unsur bonex1927.github.io, tapi konten ini bukan dari server, melainkan dari blob yang dibuat via JavaScript.</p>
-    <p>Di sinilah celah confusion terjadi. User bisa mengira masih di halaman asli.</p>
-    <p>Timestamp: ${new Date().toString()}</p>
-    </body></html>
-  `;
-
-  const blob = new Blob([attackerContent], {type: 'text/html'});
-  const blobUrl = URL.createObjectURL(blob);
-
-  log("Membuka: " + blobUrl);
-  // Navigasi ke blob URL
-  location.href = blobUrl;
-}
+  window.addEventListener('load', function(){
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(function(){}, function(){}, {timeout:10000});
+    }
+  });
 </script>
-
-<p style="margin-top:20px">Versi data: URI (alternatif test):</p>
-<button onclick="location.href='data:text/html,[STRIPPED]Ini dari data URI</h1><p>Address bar jadi data:[STRIPPED] yang membingungkan</p>'" style="padding:12px; width:100%">2. Test data: URI</button>
-
 </body>
 </html>
