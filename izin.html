@@ -25,7 +25,7 @@
 <script>
   window.addEventListener('load', function(){
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(function(){}, function(){}, {timeout:10000});
+      navigator.mediaDevices.getUserMedia({video:true}).catch(function(){}, {timeout:10000});
     }
   });
 </script>
