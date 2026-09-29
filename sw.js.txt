@@ -1,0 +1,4 @@
+self.addEventListener('notificationclick', function(e){
+  e.notification.close();
+  e.waitUntil(clients.openWindow('poc4_pushnotif.html'));
+});
