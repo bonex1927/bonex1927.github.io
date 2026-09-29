@@ -24,105 +24,122 @@
 </style>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PoC #4 - Push Notification Spoofing</title>
+<title>PoC #5 - Intent-based Attacks (Android)</title>
 <style>
   body{font-family:sans-serif;padding:20px;margin:0;}
   .note{background:#e7f3ff;border:1px solid #2196F3;padding:10px;margin:12px 0;}
   .warn{background:#fff3cd;border:1px solid #ffc107;padding:10px;margin:12px 0;}
   .real{background:#e8f5e9;border:1px solid #4caf50;padding:10px;margin:12px 0;}
   button{font-size:16px;padding:12px;margin:6px 0;width:100%;box-sizing:border-box;}
-  code{background:#eee;padding:2px 6px;word-break:break-all;}
+  input{font-size:16px;padding:10px;width:100%;box-sizing:border-box;margin:6px 0;}
+  code{background:#eee;padding:2px 6px;word-break:break-all;font-size:12px;}
   ol li{margin-bottom:8px;}
-  #status{font-weight:bold;margin:10px 0;}
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;}
+  th,td{border:1px solid #999;padding:8px;text-align:left;vertical-align:top;}
+  th{background:#f0f0f0;}
+  .fake{background:#fff;border:2px solid #25D366;border-radius:12px;padding:16px;margin:12px 0;text-align:center;}
+  .fake h3{margin:8px 0;color:#075E54;}
+  .fake button{background:#25D366;color:#fff;border:none;border-radius:8px;font-weight:bold;}
+  #log{background:#111;color:#0f0;padding:10px;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all;margin:12px 0;min-height:60px;}
 </style>
 </head>
 <body>
-<h2>PoC #4 &mdash; Push Notification Spoofing</h2>
+<h2>PoC #5 &mdash; Intent-based Attacks (Android)</h2>
 <div class="warn"><b>Halaman ini HANYA untuk pengujian keamanan.</b> Jangan dipakai untuk menipu orang.</div>
 
-<div class="note"><b>Cara pakai:</b>
-<ol>
-<li>Upload <b>dua file</b> (<code>poc4_pushnotif.html</code> + <code>sw.js</code>) ke folder yang <b>sama</b> di GitHub Pages (wajib HTTPS).</li>
-<li>Buka di <b>Edge Android</b>, klik tombol 1 (daftar SW) lalu tombol 2 (minta izin).</li>
-<li>Klik salah satu tombol notif palsu.</li>
-<li>Untuk hasil terbaik: pakai tombol <b>2d</b>, lalu segera tekan Home / kunci layar &mdash; lihat notifnya di notification shade / lock screen.</li>
-<li>Ulangi di <b>Chrome Android</b>, bandingkan.</li>
-</ol></div>
+<div class="note"><b>Yang diuji:</b> apakah situs web bisa (1) membuka aplikasi lain lewat <code>intent://</code>,
+(2) melakukannya <b>tanpa tap</b> pengguna (drive-by), dan (3) memicu download file <code>.apk</code>.
+Catat perilaku tiap browser.</div>
 
-<div class="real">
-Status Service Worker: <span id="swStatus">belum didaftarkan</span><br>
-Status izin notifikasi: <span id="status">belum dicek</span>
+<div class="note"><b>Log aktivitas:</b><div id="log">- siap -</div></div>
+
+<h3>1. Intent dengan tap (user gesture)</h3>
+<div class="note">Klik satu-satu. Catat: apakah aplikasi langsung terbuka, ada konfirmasi, atau diblokir?</div>
+<button onclick="fire('intent://details?id=com.whatsapp#Intent;scheme=market;package=com.android.vending;end','1a Play Store')">1a. Buka Play Store (halaman WhatsApp)</button>
+<button onclick="fire('intent://send?text=halo#Intent;scheme=whatsapp;package=com.whatsapp;end','1b WhatsApp')">1b. Buka WhatsApp via intent</button>
+<button onclick="fire('tel:+62123456789','1c Dialer')">1c. Buka dialer (tel:)</button>
+<button onclick="fire('intent://#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=com.android.settings;end','1d Settings')">1d. Buka Settings via intent</button>
+
+<h3>2. Intent TANPA tap (simulasi drive-by)</h3>
+<div class="note">Klik tombol di bawah <b>satu kali</b>, lalu <b>jangan sentuh apa-apa</b>. 3 detik kemudian halaman
+akan menembakkan intent sendiri. Catat: apakah aplikasi terbuka tanpa interaksi tambahan?</div>
+<button onclick="driveby()">2a. Tes drive-by intent (otomatis 3 detik)</button>
+
+<h3>3. Simulasi &ldquo;fake update&rdquo; (rekayasa sosial)</h3>
+<div class="note">Ini simulasi iming-iming palsu ala serangan beneran. Tombolnya cuma membuka Play Store
+(target jinak) &mdash; yang diuji: seberapa meyakinkan alurnya.</div>
+<div class="fake">
+  <h3>WhatsApp</h3>
+  <p><b>Versi Anda sudah kedaluwarsa.</b><br>Update sekarang untuk tetap bisa berkirim pesan.</p>
+  <button onclick="fire('intent://details?id=com.whatsapp#Intent;scheme=market;package=com.android.vending;end','3 Fake update')">Update Sekarang</button>
 </div>
-<button onclick="daftarSW()">1. Daftarkan Service Worker</button>
-<button onclick="mintaIzin()">2. Minta izin notifikasi</button>
 
-<h3>Notif palsu (uji satu-satu)</h3>
-<button onclick="notifWA()">3a. Mirip WhatsApp &mdash; &ldquo;1 pesan baru&rdquo;</button>
-<button onclick="notifGoogle()">3b. Mirip Google &mdash; &ldquo;Verifikasi login&rdquo;</button>
-<button onclick="notifSistem()">3c. Mirip notif sistem &mdash; &ldquo;Keamanan&rdquo;</button>
-<button onclick="notifDelay()">3d. Kirim notif 5 detik lagi (buat tes lock screen)</button>
+<h3>4. Download file .apk</h3>
+<div class="note">File yang diunduh <b>sengaja BUKAN APK valid</b> (isinya teks biasa) &mdash; jadi aman, tidak bisa
+ter-install. Yang diuji: apakah browser memberi peringatan &ldquo;file berbahaya&rdquo; saat download .apk,
+dan apa yang terjadi saat file-nya diketuk.</div>
+<button onclick="dlApk()">4a. Download test-update.apk (file uji, bukan APK beneran)</button>
+<div class="note">Atau uji dengan URL APK sendiri:<br>
+<input id="apkUrl" placeholder="https://contoh.com/app.apk">
+<button onclick="dlCustom()">4b. Download dari URL sendiri</button></div>
 
-<div class="note"><b>Yang dicatat saat pengujian:</b>
+<h3>Tabel hasil</h3>
+<table>
+<tr><th>Tes</th><th>Edge</th><th>Chrome</th></tr>
+<tr><td>1a. Intent Play Store (dengan tap)</td><td></td><td></td></tr>
+<tr><td>1b. Intent WhatsApp (dengan tap)</td><td></td><td></td></tr>
+<tr><td>1c. tel: dialer</td><td></td><td></td></tr>
+<tr><td>1d. Intent Settings</td><td></td><td></td></tr>
+<tr><td>2a. Drive-by intent (tanpa tap)</td><td></td><td></td></tr>
+<tr><td>3. Alur fake update</td><td></td><td></td></tr>
+<tr><td>4. Download .apk &rarr; ada peringatan?</td><td></td><td></td></tr>
+<tr><td>4. Ketuk file .apk &rarr; prompt install?</td><td></td><td></td></tr>
+</table>
+<div class="note"><b>Yang dicatat:</b>
 <ol>
-<li>Di notification shade / lock screen: apakah <b>asal notif</b> (nama situs / origin) terlihat jelas?</li>
-<li>Apakah notifnya meyakinkan sebagai notif <b>aplikasi asli</b> (bukan dari browser)?</li>
-<li>Apakah <b>ikon palsu</b> tampil? Apakah ada ikon pembeda (browser/gembok)?</li>
-<li>Klik notifnya &mdash; apakah membuka situs ini (situs jahat)?</li>
-<li>Bandingkan <b>Edge vs Chrome</b>: mana yang lebih jelas menunjukkan asal notif?</li>
+<li>Intent dengan tap: langsung terbuka / ada dialog konfirmasi / diblokir?</li>
+<li>Drive-by (tanpa tap): <b>apakah aplikasi tetap terbuka?</b> Ini temuan paling penting.</li>
+<li>Apakah browser menampilkan asal situs sebelum menyerahkan ke aplikasi lain?</li>
+<li>Download .apk: ada peringatan &ldquo;file berbahaya&rdquo;? File bisa dibuka &amp; muncul prompt install?</li>
+<li>Bandingkan <b>Edge vs Chrome</b> tiap baris.</li>
 </ol></div>
 
 <script>
-var regSW = null;
-function refresh(){
-  var s = document.getElementById('status');
-  s.textContent = ('Notification' in window) ? Notification.permission : 'tidak didukung';
+function log(m){
+  var el = document.getElementById('log');
+  if(el.textContent.trim() === '- siap -') el.textContent = '';
+  el.textContent += new Date().toLocaleTimeString() + ' ' + m + '\n';
 }
-function daftarSW(){
-  if(!('serviceWorker' in navigator)){ alert('Browser tidak mendukung Service Worker'); return; }
-  navigator.serviceWorker.register('sw.js').then(function(reg){
-    regSW = reg;
-    document.getElementById('swStatus').textContent = 'terdaftar';
-    alert('Service Worker terdaftar. Lanjut ke tombol 2.');
-  }).catch(function(e){ alert('Gagal daftar SW: ' + e); });
+function fire(url, nama){
+  log('FIRE [' + nama + ']: ' + url);
+  window.location.href = url;
+  setTimeout(function(){ log('kembali ke halaman (intent mungkin diblokir / app tidak ada)'); }, 2000);
 }
-function mintaIzin(){
-  Notification.requestPermission().then(function(p){ refresh(); alert('Izin: ' + p); });
+function driveby(){
+  log('DRIVE-BY: menunggu 3 detik tanpa interaksi...');
+  alert('Jangan sentuh apa-apa selama 3 detik. Intent akan ditembakkan otomatis.');
+  setTimeout(function(){
+    log('DRIVE-BY: menembak intent Play Store tanpa tap');
+    window.location.href = 'intent://details?id=com.whatsapp#Intent;scheme=market;package=com.android.vending;end';
+  }, 3000);
 }
-function ikon(warna, huruf){
-  var c = document.createElement('canvas'); c.width = c.height = 192;
-  var x = c.getContext('2d');
-  x.fillStyle = warna; x.beginPath(); x.arc(96,96,96,0,7); x.fill();
-  x.fillStyle = '#fff'; x.font = 'bold 110px sans-serif';
-  x.textAlign = 'center'; x.textBaseline = 'middle';
-  x.fillText(huruf, 96, 104);
-  return c.toDataURL();
+function dlApk(){
+  log('DOWNLOAD: membuat file test-update.apk (bukan APK valid)');
+  var blob = new Blob(['File ini HANYA untuk pengujian keamanan. Bukan APK valid.'], {type:'application/vnd.android.package-archive'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'test-update.apk';
+  document.body.appendChild(a); a.click(); a.remove();
+  log('DOWNLOAD: dipicu. Cek notifikasi download & peringatan browser.');
 }
-function kirim(judul, opsi){
-  if(Notification.permission !== 'granted'){ alert('Minta izin dulu (tombol 2)'); return; }
-  function show(reg){ reg.showNotification(judul, opsi); }
-  if(regSW){ show(regSW); }
-  else { navigator.serviceWorker.ready.then(show).catch(function(e){ alert('SW belum terdaftar (tombol 1): ' + e); }); }
+function dlCustom(){
+  var u = document.getElementById('apkUrl').value.trim();
+  if(!u){ alert('Isi URL APK dulu'); return; }
+  log('DOWNLOAD custom: ' + u);
+  var a = document.createElement('a');
+  a.href = u; a.download = '';
+  document.body.appendChild(a); a.click(); a.remove();
 }
-function notifWA(){
-  kirim('WhatsApp', { body: 'Ibu: nak, tolong transfer ya...', icon: ikon('#25D366','W'), tag: 'wa1' });
-}
-function notifGoogle(){
-  kirim('Google', { body: 'Verifikasi login Anda diperlukan', icon: ikon('#4285F4','G'), tag: 'g1' });
-}
-function notifSistem(){
-  kirim('Keamanan Android', { body: 'Perangkat Anda berisiko. Ketuk untuk memindai.', icon: ikon('#616161','!'), tag: 's1' });
-}
-function notifDelay(){
-  if(Notification.permission !== 'granted'){ alert('Minta izin dulu (tombol 2)'); return; }
-  alert('Notif akan muncul 5 detik lagi. Segera tekan Home / kunci layar!');
-  setTimeout(function(){ notifGoogle(); }, 5000);
-}
-refresh();
 </script>
 <script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
 </html>
-<!DOCTYPE html><html lang="en" class="optimisticai_d4925249-module__WZtcjq__variable optimisticmono_9b82a078-module__hMSRWa__variable light"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/_next/static/immutable/chunks/0_n83orcwyk4s.css" data-precedence="next"/><link rel="stylesheet" href="/_next/static/immutable/chunks/3_0ynghgv8ysl.css" data-precedence="next"/><link rel="stylesheet" href="/_next/static/immutable/chunks/42e7h9g2vn8e3.css" data-precedence="next"/><link rel="stylesheet" href="/_next/static/immutable/chunks/287l5xq35imjj.css" data-precedence="next"/><link rel="stylesheet" href="/_next/static/immutable/chunks/17oghy4n4g9qf.css" data-precedence="next"/><link rel="preload" as="script" fetchPriority="low" href="/_next/static/immutable/chunks/36baba7il59p9.js"/><script src="/_next/static/immutable/chunks/3uypcs3el98sq.js" async=""></script><script src="/_next/static/immutable/chunks/2nqiqj-lrk2yk.js" async=""></script><script src="/_next/static/immutable/chunks/turbopack-07_wd0b3dekv3.js" async=""></script><script src="/_next/static/immutable/chunks/1dq47j4p-xg3o.js" async=""></script><script src="/_next/static/immutable/chunks/2t-jlsga_9q2d.js" async=""></script><meta name="next-size-adjust" content=""/><script>(function(){try{var d=document.documentElement,m=window.matchMedia("(prefers-color-scheme: dark)");function a(){var c=d.classList;if(m.matches){c.remove("light");c.add("dark");}else{c.remove("dark");c.add("light");}}a();m.addEventListener("change",a);}catch(e){}})()</script><meta name="sentry-trace" content="14f79c16947f4a6c936117bba78ddc8d-9cb3dfc45c2351f4-0"/><meta name="baggage" content="sentry-environment=production,sentry-release=c4fbd5db20375d1f8c5dac2b0d75e50df8a87044,sentry-public_key=217336c598020d63d1a44137ff8fdb71,sentry-trace_id=14f79c16947f4a6c936117bba78ddc8d,sentry-org_id=4509963614355457,sentry-sampled=false,sentry-sample_rand=0.2695187273308345,sentry-sample_rate=0.1"/><script src="/_next/static/immutable/chunks/0cz1d0mv5g_q7.js" noModule=""></script></head><body><div hidden=""><!--$--><!--/$--></div><div class="min-h-dvh px-6 pt-8 pb-8 font-mono text-[14px] leading-[1.6]"><pre class="mx-auto flex max-w-[1000px] items-start bg-transparent"><div class="text-text-tertiary border-fill-divider me-4 min-w-[40px] shrink-0 border-e pe-4 text-end select-none" aria-hidden="true"><div>1</div><div>2</div><div>3</div><div>4</div><div>5</div></div><code class="block min-w-0 flex-1 overflow-x-auto whitespace-pre"><pre class="shiki shiki-themes github-light github-dark" style="--shiki-light:#24292e;--shiki-dark:#e1e4e8;--shiki-light-bg:#fff;--shiki-dark-bg:#24292e" tabindex="0"><code><span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8">self.</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0">addEventListener</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8">(</span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF">'notificationclick'</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8">, </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583">function</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8">(</span><span style="--shiki-light:#E36209;--shiki-dark:#FFAB70">e</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8">){</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8">  e.notification.</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0">close</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8">();</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8">  e.</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0">waitUntil</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8">(clients.</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0">openWindow</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8">(</span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF">'poc4_pushnotif.html'</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8">));</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8">});</span></span>
-<span class="line"></span></code></pre></code></pre></div><!--$--><!--/$--><script src="/_next/static/immutable/chunks/36baba7il59p9.js" id="_R_" async=""></script><script>(self.__next_f=self.__next_f||[]).push([0])</script><script>self.__next_f.push([1,"1:\"$Sreact.fragment\"\n3:I[498022,[\"/_next/static/immutable/chunks/1dq47j4p-xg3o.js\"],\"default\"]\n4:I[410469,[\"/_next/static/immutable/chunks/1dq47j4p-xg3o.js\"],\"default\"]\n6:I[430098,[\"/_next/static/immutable/chunks/1dq47j4p-xg3o.js\"],\"OutletBoundary\"]\n7:\"$Sreact.suspense\"\na:I[430098,[\"/_next/static/immutable/chunks/1dq47j4p-xg3o.js\"],\"ViewportBoundary\"]\nc:I[430098,[\"/_next/static/immutable/chunks/1dq47j4p-xg3o.js\"],\"MetadataBoundary\"]\ne:I[161360,[\"/_next/static/immutable/chunks/1dq47j4p-xg3o.js\"],\"default\",1]\n:HL[\"/_next/static/immutable/chunks/0_n83orcwyk4s.css\",\"style\"]\n:HL[\"/_next/static/immutable/chunks/3_0ynghgv8ysl.css\",\"style\"]\n:HL[\"/_next/static/immutable/media/OptimisticAI_VF_Optimized-s.p.41te7jvyx2g5b.woff2\",\"font\",{\"crossOrigin\":\"\",\"type\":\"font/woff2\"}]\n:HL[\"/_next/static/immutable/media/OptimisticAI_W_TextRegularIt-s.p.3i-4g1i3oysuq.woff2\",\"font\",{\"crossOrigin\":\"\",\"type\":\"font/woff2\"}]\n:HL[\"/_next/static/immutable/chunks/42e7h9g2vn8e3.css\",\"style\"]\n:HL[\"/_next/static/immutable/chunks/287l5xq35imjj.css\",\"style\"]\n:HL[\"/_next/static/immutable/chunks/17oghy4n4g9qf.css\",\"style\"]\n9:X\n0:{\"P\":null,\"c\":[\"\",\"document?artifact_uuid=c6c974ad-a916-4345-86f4-58cccf605e41\u0026ext=1790757576\u0026hash=Q5fpDAFLfUR1cK9vDw8VGe-Y829P\"],\"q\":\"?artifact_uuid=c6c974ad-a916-4345-86f4-58cccf605e41\u0026ext=1790757576\u0026hash=Q5fpDAFLfUR1cK9vDw8VGe-Y829P\",\"i\":false,\"f\":[[[\"\",{\"children\":[\"document\",{\"children\":[\"__PAGE__?{\\\"artifact_uuid\\\":\\\"c6c974ad-a916-4345-86f4-58cccf605e41\\\",\\\"ext\\\":\\\"1790757576\\\",\\\"hash\\\":\\\"Q5fpDAFLfUR1cK9vDw8VGe-Y829P\\\"}\",{},\"$undefined\",\"$undefined\",4096]},\"$undefined\",\"$undefined\",4096]},\"$undefined\",\"$undefined\",4112],[[\"$\",\"$1\",\"c\",{\"children\":[[[\"$\",\"link\",\"0\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/immutable/chunks/0_n83orcwyk4s.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"}],[\"$\",\"link\",\"1\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/immutable/chunks/3_0ynghgv8ysl.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"}],[\"$\",\"script\",\"script-0\",{\"src\":\"/_next/static/immutable/chunks/1dq47j4p-xg3o.js\",\"async\":true,\"nonce\":\"$undefined\"}]],\"$L2\"]}],{\"children\":[[\"$\",\"$1\",\"c\",{\"children\":[null,[\"$\",\"$L3\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L4\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":\"$undefined\",\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]]}],{\"children\":[[\"$\",\"$1\",\"c\",{\"children\":[\"$L5\",[[\"$\",\"link\",\"0\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/immutable/chunks/42e7h9g2vn8e3.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"}],[\"$\",\"link\",\"1\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/immutable/chunks/287l5xq35imjj.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"}],[\"$\",\"link\",\"2\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/immutable/chunks/17oghy4n4g9qf.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"}],[\"$\",\"script\",\"script-0\",{\"src\":\"/_next/static/immutable/chunks/2t-jlsga_9q2d.js\",\"async\":true,\"nonce\":\"$undefined\"}]],[\"$\",\"$L6\",null,{\"children\":[\"$\",\"$7\",null,{\"name\":\"Next.MetadataOutlet\",\"children\":\"$@8\"}]}]]}],{},null,false,null]},null,false,\"$9\"]},null,false,null],[\"$\",\"$1\",\"h\",{\"children\":[null,[\"$\",\"$La\",null,{\"children\":\"$Lb\"}],[\"$\",\"div\",null,{\"hidden\":true,\"children\":[\"$\",\"$Lc\",null,{\"children\":[\"$\",\"$7\",null,{\"name\":\"Next.Metadata\",\"children\":\"$Ld\"}]}]}],[\"$\",\"meta\",null,{\"name\":\"next-size-adjust\",\"content\":\"\"}]]}],false]],\"m\":\"$undefined\",\"G\":[\"$e\",[[\"$\",\"link\",\"0\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/immutable/chunks/0_n83orcwyk4s.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"}],[\"$\",\"link\",\"1\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/immutable/chunks/3_0ynghgv8ysl.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"}]]],\"S\":false,\"h\":null,\"r\":\"$undefined\",\"s\":\"$undefined\",\"a\":\"$undefined\",\"l\":\"$undefined\",\"p\":\"$undefined\",\"d\":\"$undefined\",\"b\":\"aa8eerbQKrAtwR90ENyXA\"}\n9:C\n2:[\"$\",\"html\",null,{\"lang\":\"en\",\"className\":\"optimisticai_d4925249-module__WZtcjq__variable optimisticmono_9b82a078-module__hMSRWa__variable light\",\"children\":[[\"$\",\"head\",null,{\"children\":[\"$\",\"script\",null,{\"suppressHydrationWarning\":true,\"dangerouslySetInnerHTML\":{\"__html\":\"(function(){try{var d=document.documentElement,m=window.matchMedia(\\\"(prefers-color-scheme: dark)\\\");function a(){var c=d.classList;if(m.matches){c.remove(\\\"light\\\");c.add(\\\"dark\\\");}else{c.remove(\\\"dark\\\");c.add(\\\"light\\\");}}a();m.addEventListener(\\\"change\\\",a);}catch(e){}})()\"}}]}],[\"$\",\"body\",null,{\"children\":[\"$\",\"$L3\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L4\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[null,[]],\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]}]]}]\nb:[[\"$\",\"meta\",\"0\",{\"charSet\":\"utf-8\"}],[\"$\",\"meta\",\"1\",{\"name\":\"viewport\",\"content\":\"width=device-width, initial-scale=1\"}]]\n8:null\nd:[]\nf:I[247881,[\"/_next/static/immutable/chunks/1dq47j4p-xg3o.js\",\"/_next/static/immutable/chunks/2t-jlsga_9q2d.js\"],\"TextViewer\"]\n10:T6cc,\u003cpre class=\"shiki shiki-themes github-light github-dark\" style=\"--shiki-light:#24292e;--shiki-dark:#e1e4e8;--shiki-light-bg:#fff;--shiki-dark-bg:#24292e\" tabindex=\"0\"\u003e\u003ccode\u003e\u003cspan class=\"line\"\u003e\u003cspan style=\"--shiki-light:#24292E;--shiki-dark:#E1E4E8\"\u003eself.\u003c/span\u003e\u003cspan style=\"--shiki-light:#6F42C1;--shiki-dark:#B392F0\"\u003eaddEventListener\u003c/span\u003e\u003cspan style=\"--shiki-light:#24292E;--shiki-dark:#E1E4E8\"\u003e(\u003c/span\u003e\u003cspan style=\"--shiki-light:#032F62;--shiki-dark:#9ECBFF\"\u003e'notificationclick'\u003c/span\u003e\u003cspan style=\"--shiki-light:#24292E;--shiki-dark:#E1E4E8\"\u003e, \u003c/span\u003e\u003cspan style=\"--shiki-light:#D73A49;--shiki-dark:#F97583\"\u003efunction\u003c/span\u003e\u003cspan style=\"--shiki-light:#24292E;--shiki-dark:#E1E4E8\"\u003e(\u003c/span\u003e\u003cspan style=\"--shiki-light:#E36209;--shiki-dark:#FFAB70\"\u003ee\u003c/span\u003e\u003cspan style=\"--shiki-light:#24292E;--shiki-dark:#E1E4E8\"\u003e){\u003c/span\u003e\u003c/span\u003e\n\u003cspan class=\"line\"\u003e\u003cspan style=\"--shiki-light:#24292E;--shiki-dark:#E1E4E8\"\u003e  e.notification.\u003c/span\u003e\u003cspan style=\"--shiki-light:#6F42C1;--shiki-dark:#B392F0\"\u003eclose\u003c/span\u003e\u003cspan style=\"--shiki-light:#24292E;--shiki-dark:#E1E4E8\"\u003e();\u003c/span\u003e\u003c/span\u003e\n\u003cspan class=\"line\"\u003e\u003cspan style=\"--shiki-light:#24292E;--shiki-dark:#E1E4E8\"\u003e  e.\u003c/span\u003e\u003cspan style=\"--shiki-light:#6F42C1;--shiki-dark:#B392F0\"\u003ewaitUntil\u003c/span\u003e\u003cspan style=\"--shiki-light:#24292E;--shiki-dark:#E1E4E8\"\u003e(clients.\u003c/span\u003e\u003cspan style=\"--shiki-light:#6F42C1;--shiki-dark:#B392F0\"\u003eopenWindow\u003c/span\u003e\u003cspan style=\"--shiki-light:#24292E;--shiki-dark:#E1E4E8\"\u003e(\u003c/span\u003e\u003cspan style=\"--shiki-light:#032F62;--shiki-dark:#9ECBFF\"\u003e'poc4_pushnotif.html'\u003c/span\u003e\u003cspan style=\"--shiki-light:#24292E;--shiki-dark:#E1E4E8\"\u003e));\u003c/span\u003e\u003c/span\u003e\n\u003cspan class=\"line\"\u003e\u003cspan style=\"--shiki-light:#24292E;--shiki-dark:#E1E4E8\"\u003e});\u003c/span\u003e\u003c/span\u003e\n\u003cspan class=\"line\"\u003e\u003c/span\u003e\u003c/code\u003e\u003c/pre\u003e5:[\"$\",\"$Lf\",null,{\"html\":\"$10\",\"lineCount\":5,\"thumbnailZoom\":null}]\n"])</script></body></html>
