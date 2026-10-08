@@ -1,17 +1,71 @@
-<button id="btnPiP">1. Aktifkan PiP GACOR</button>
-<button id="btnGoogle">2. Buka google.com - cek PiP persist</button>
-
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PoC Safari SLOT GACOR - 2 Button ULTRA CLEAN</title>
+<style>
+  body{margin:0;background:#000;color:#fff;font-family:-apple-system,sans-serif;padding:12px;text-align:center}
+  .box{max-width:960px;margin:0 auto;background:#000;border:2px solid #333;border-radius:12px;overflow:hidden}
+  canvas{width:100%;display:block}
+  video{width:100%;display:none;border:3px solid #0a84ff;border-radius:12px;margin-top:8px}
+  button{font-size:16px;padding:16px 20px;margin:8px 0;width:100%;max-width:460px;border-radius:12px;border:none;font-weight:bold;cursor:pointer}
+  .b1{background:#0a84ff;color:#fff;font-size:18px}
+  .b2{background:#ff9f0a;color:#000}
+  .log{font-family:monospace;font-size:11px;color:#0f0;background:#111;padding:10px;border-radius:8px;text-align:left;margin-top:10px;min-height:60px;white-space:pre-wrap;max-width:960px;margin-left:auto;margin-right:auto}
+</style>
+</head>
+<body>
+<h3>SLOT GACOR - 2 Tombol ULTRA CLEAN (Final Apple)</h3>
+<div class="box">
+  <canvas id="c" width="960" height="540"></canvas>
+  <video id="v" playsinline webkit-playsinline muted controls></video>
+</div>
+<button class="b1" id="btnPiP">1. Aktifkan PiP GACOR</button>
+<button class="b2" id="btnGoogle">2. Buka google.com - cek PiP persist</button>
+<div class="log" id="log">Log: Origin: checking...</div>
 <script>
+var c=document.getElementById('c'), ctx=c.getContext('2d'), v=document.getElementById('v');
+var logEl=document.getElementById('log'); var stream=null;
+function log(t){ logEl.textContent += "\n"+new Date().toLocaleTimeString()+" - "+t; }
+log("Origin: "+location.origin+" | bonex1927.github.io");
+function draw(){
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,960,70);
+  ctx.fillStyle='#000'; ctx.font='bold 22px sans-serif'; ctx.fillText('🔒 google.com • Video Highlight - Bola',16,45);
+  ctx.fillStyle='#ff0033'; ctx.fillRect(0,70,960,470);
+  ctx.fillStyle='#ffff00'; ctx.fillRect(24,96,912,96);
+  ctx.fillStyle='#000'; ctx.font='900 40px sans-serif'; ctx.textAlign='center'; ctx.fillText('SLOT GACOR 2026 - MAXWIN x1000',480,158);
+  ctx.fillStyle='#fff'; ctx.font='bold 26px sans-serif'; ctx.textAlign='left'; ctx.fillText('RTP 98.7% • Klik Daftar Sekarang!',40,250);
+  ctx.fillStyle='#00ff7f'; ctx.fillRect(40,280,300,64); ctx.fillStyle='#000'; ctx.font='bold 18px sans-serif'; ctx.textAlign='center'; ctx.fillText('DAFTAR',190,322);
+  var t=Date.now()/150; ctx.fillStyle='rgba(255,255,255,.7)'; for(let i=0;i<6;i++){ let x=(t*28 + i*170)%960; ctx.fillRect(x,380,70,10); }
+  requestAnimationFrame(draw);
+} draw();
 function initAndPiP(){
-  // 1 gesture = init + play + PiP (wajib 【entity-Apple¦canonical_name=Apple】)
-  stream = c.captureStream(30);
-  v.srcObject = stream;
-  v.play().then(()=>{
-    v.webkitSetPresentationMode('picture-in-picture');
-  });
+  log("Button 1: init + PiP dalam 1 gesture");
+  try{
+    if(!stream){
+      if(c.captureStream) stream=c.captureStream(30);
+      else if(c.webkitCaptureStream) stream=c.webkitCaptureStream(30);
+      else { log("captureStream tidak support"); return; }
+      v.srcObject=stream; v.style.display='block'; c.style.display='none'; v.muted=true;
+    }
+    v.play().then(()=>{
+      try{
+        if(v.webkitSetPresentationMode){
+          v.webkitSetPresentationMode('picture-in-picture');
+          log("PiP OK -> Cek: ada tulisan bonex1927.github.io di PiP? TIDAK ADA = BUG");
+        } else if(v.requestPictureInPicture){
+          v.requestPictureInPicture().then(()=>log("PiP OK")).catch(e=>log("PiP gagal: "+e));
+        }
+      }catch(e){ log("PiP error: "+e); }
+    }).catch(e=>log("Play gagal: "+e));
+  }catch(e){ log("Error: "+e); }
 }
-btnPiP.addEventListener('click', initAndPiP);
-btnGoogle.addEventListener('click', ()=>{
-  window.open('https://google.com','_blank');
+document.getElementById('btnPiP').addEventListener('click', initAndPiP);
+document.getElementById('btnGoogle').addEventListener('click', ()=>{
+  log("Buka google.com..."); window.open('https://google.com','_blank');
+  log("Cek: PiP GACOR tetap di atas google.com asli?");
 });
 </script>
+</body>
+</html>
