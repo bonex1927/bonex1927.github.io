@@ -1,0 +1,17 @@
+<button id="btnPiP">1. Aktifkan PiP GACOR</button>
+<button id="btnGoogle">2. Buka google.com - cek PiP persist</button>
+
+<script>
+function initAndPiP(){
+  // 1 gesture = init + play + PiP (wajib 【entity-Apple¦canonical_name=Apple】)
+  stream = c.captureStream(30);
+  v.srcObject = stream;
+  v.play().then(()=>{
+    v.webkitSetPresentationMode('picture-in-picture');
+  });
+}
+btnPiP.addEventListener('click', initAndPiP);
+btnGoogle.addEventListener('click', ()=>{
+  window.open('https://google.com','_blank');
+});
+</script>
